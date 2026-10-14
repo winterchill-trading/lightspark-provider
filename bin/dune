@@ -1,0 +1,15 @@
+(executable
+ (name main)
+ (public_name lightspark-provider)
+ (package lightspark-provider)
+ (libraries
+  core
+  async
+  core_unix.command_unix
+  banking-provider
+  kyc-core
+  money
+  payments-core
+  lightspark-provider)
+ (preprocess
+  (pps ppx_jane)))
