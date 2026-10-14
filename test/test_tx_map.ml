@@ -163,3 +163,41 @@ let%expect_test "an incoming transaction that failed after settling is a return"
     |}];
   return ()
 ;;
+
+let%expect_test "payment rails Grid reports" =
+  let base = List.hd_exn (transactions ()) in
+  List.iter
+    [ "ACH"
+    ; "ACH_SAME_DAY"
+    ; "RTP"
+    ; "WIRE"
+    ; "FEDNOW"
+    ; "SEPA"
+    ; "SEPA_INSTANT"
+    ; "LIGHTNING"
+    ]
+    ~f:(fun r ->
+      let tx = { base with payment_rail = Some r } in
+      print_s
+        [%message
+          r
+            ~rail:(Tx_map.rail tx : Payments_core.Rail.t)
+            ~details:(Tx_map.details tx : Payments_core.Transfer.Details.t)]);
+  [%expect
+    {|
+    (ACH (rail (Ach (sec Ppd) (same_day false)))
+     (details (Us_domestic ((scheme_ref ()) (effective_date ())))))
+    (ACH_SAME_DAY (rail (Ach (sec Ppd) (same_day true)))
+     (details (Us_domestic ((scheme_ref ()) (effective_date ())))))
+    (RTP (rail Rtp)
+     (details (Us_domestic ((scheme_ref ()) (effective_date ())))))
+    (WIRE (rail Fedwire)
+     (details (Us_domestic ((scheme_ref ()) (effective_date ())))))
+    (FEDNOW (rail Intraledger) (details Intraledger))
+    (SEPA (rail Sepa_credit) (details Intraledger))
+    (SEPA_INSTANT (rail Sepa_instant) (details Intraledger))
+    (LIGHTNING (rail Lightning)
+     (details (Lightning (payment_hash ()) (preimage ()))))
+    |}];
+  return ()
+;;

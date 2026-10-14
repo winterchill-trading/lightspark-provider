@@ -38,6 +38,10 @@ let outgoing_update (tx : Grid_api.Transaction.t) : Transfer_update.t option =
 
 let network_of_grid n : Network.t option =
   match String.uppercase n with
+  | "BASE" -> Some Base
+  | "ARBITRUM" -> Some Arbitrum
+  | "PLASMA" -> Some Plasma
+  | "SPARK" -> Some Spark
   | "ETHEREUM" -> Some Ethereum
   | "POLYGON" -> Some Polygon
   | "SOLANA" -> Some Solana
@@ -52,6 +56,12 @@ let rail (tx : Grid_api.Transaction.t) : Rail.t =
   | None, Some "LIGHTNING" -> Lightning
   | None, Some "SEPA" -> Sepa_credit
   | None, Some "SEPA_INSTANT" -> Sepa_instant
+  (* Grid does not say how the receiver authorised an ACH entry; PPD (consumer) is the
+     class it sends for individuals. *)
+  | None, Some "ACH" -> Ach { sec = Ppd; same_day = false }
+  | None, Some "ACH_SAME_DAY" -> Ach { sec = Ppd; same_day = true }
+  | None, Some "RTP" -> Rtp
+  | None, Some "WIRE" -> Fedwire
   | None, _ -> Intraledger
 ;;
 
@@ -66,6 +76,7 @@ let details (tx : Grid_api.Transaction.t) : Transfer.Details.t =
       ; finalized = String.equal tx.status "COMPLETED"
       }
   | Lightning -> Lightning { payment_hash = None; preimage = None }
+  | Ach _ | Rtp | Fedwire -> Us_domestic Payments_core.Us_scheme.Details.empty
   | _ -> Intraledger
 ;;
 
