@@ -180,9 +180,20 @@ let walk () =
         (Money.Amount.to_string b.posted)
   in
   let%bind () =
-    send ~from:usd.id (sepa_draft ~id:(run_id ^ "-sepa") ~iban:"DE89370400440532013000")
+    let draft = sepa_draft ~id:(run_id ^ "-sepa") ~iban:"DE89370400440532013000" in
+    let%bind () =
+      match draft.counterparty with
+      | Beneficiary b ->
+        let%map check = Adapter.verify_payee adapter ~customer:customer.id b in
+        Core.printf
+          "   payee check %s\n"
+          (Sexp.to_string [%sexp (check : Beneficiary.Payee_check.t Or_error.t)])
+      | External _ -> return ()
+    in
+    send ~from:usd.id draft
   in
-  (* Grid's sandbox fails a payout to an account number ending in 011 as ACCOUNT_INVALID. *)
+  (* The documented 011 suffix (ACCOUNT_INVALID); on an IBAN Grid reported a refused
+     payout instead. *)
   step "payout to an account the sandbox reports invalid";
   let%bind () =
     send ~from:usd.id (sepa_draft ~id:(run_id ^ "-bad") ~iban:"DE83370400440532013011")
