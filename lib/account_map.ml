@@ -51,21 +51,16 @@ let account ~customer_id (a : Grid_api.Internal_account.t) =
 ;;
 
 let balance account (a : Grid_api.Internal_account.t) ~at =
-  let open Or_error.Let_syntax in
-  let%bind available = Grid_api.Amount.to_money a.balance in
-  let%bind posted =
-    match a.total_balance with
-    | Some total -> Grid_api.Amount.to_money total
-    | None -> Ok available
-  in
-  let%bind held = Money.Amount.sub posted available in
-  (* A total below the spendable balance would be a Grid inconsistency; report no hold
-     rather than a negative one. *)
-  let held =
-    if Money.Amount.is_negative held then Money.Amount.zero (Money.Amount.currency held) else held
-  in
-  let%map posted = Money.Amount.add available held in
-  { Account.Balance.account; available; held; posted; as_of = at }
+  (* [totalBalance] is not used: on the sandbox it stayed at the deposited total after
+     settled payouts and conversions (measured 2026-10-14), so it cannot stand for the
+     posted balance. *)
+  let%map.Or_error available = Grid_api.Amount.to_money a.balance in
+  { Account.Balance.account
+  ; available
+  ; held = Money.Amount.zero (Money.Amount.currency available)
+  ; posted = available
+  ; as_of = at
+  }
 ;;
 
 module Us_bank = struct

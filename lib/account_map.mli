@@ -14,9 +14,10 @@
         wallets                                      none: no payments-core type
     v}
 
-    Balances: Grid's [balance] is what can be spent and [totalBalance] includes pending
-    and held funds, so [available = balance], [posted = totalBalance] and [held] is the
-    difference. *)
+    Balances: Grid's [balance] is what can be spent; [available = posted = balance] and
+    [held] is zero. Grid documents [totalBalance] as the balance including pending and
+    held funds, but on the sandbox it stayed at the deposited total after settled
+    payouts and conversions, so it is not used. *)
 
 open! Core
 open Banking_provider
