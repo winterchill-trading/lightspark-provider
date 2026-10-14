@@ -3,8 +3,9 @@
 [banking-provider](https://github.com/winterchill-trading/banking-provider)'s
 `Provider.S` and `Sandbox.S` implemented over the Lightspark Grid API
 ([lightspark-client](https://github.com/winterchill-trading/lightspark-client)):
-customers and their KYC state, USD and stablecoin accounts, cross-border payouts to bank
-accounts with Grid's FX quotes, payouts to wallets and Lightning, conversions between a
+customers and their KYC state, USD and stablecoin accounts, US domestic payouts over
+ACH and RTP, cross-border payouts to bank accounts with Grid's FX quotes, payouts to
+wallets and Lightning, conversions between a
 customer's own accounts as swaps, statements, and webhooks normalized into
 banking-provider events. Sandbox by default. Cards are not offered.
 
@@ -63,7 +64,7 @@ through lightspark-client's redaction. Money-moving writes are refused unless
 
 | Module        | What it does |
 | ------------- | ------------ |
-| `Adapter`     | `Provider.S`, `Sandbox.S`, webhook ingestion, the poller, `us_bank_details` |
+| `Adapter`     | `Provider.S`, `Sandbox.S`, webhook ingestion, the poller |
 | `Grid_api`    | the Grid endpoints lightspark-client does not cover (external accounts, quotes with SCA, balance changes, contact verification, KYC links, test webhooks) and lenient object views |
 | `Store`       | links Grid cannot hold (our transfer and swap ids to quotes and transactions, open SCA challenges), with an in-memory implementation |
 | `Refs`        | account references carrying the owning customer |
@@ -85,11 +86,13 @@ and the gaps. [docs/api-notes.md](docs/api-notes.md) records what the sandbox sh
 | ---- | ----------------------- | ------------- |
 | Customers: create, find by our id, KYC status | yes | KYC webhooks |
 | Contact verification, hosted KYC link | | not exercised (US customers need neither) |
-| Accounts: open (wait), list, balance, US bank details | yes | |
+| Accounts: open (wait), list, balance, routing and account number (`Us_account`) | yes (when the sandbox's routing number passes the check digit) | |
 | Sandbox deposit and its `Incoming_transfer` event | yes | inbound webhooks |
 | Fee quote from exchange rates | yes | |
 | Cross-border payout USD to EUR by SEPA, events Submitted, Pending, Settled; resend pays once | yes | |
 | Payout refused by the partner (refunded) | yes | other failure reasons |
+| US payouts by ACH (fee 0.05 USD) and RTP (fee 0.50 USD), settled | yes | Same Day ACH |
+| Wire (Fedwire) | refused: Grid needs the beneficiary's postal address | |
 | USDC payout to an Ethereum wallet | yes | |
 | Conversion USD to USDC as a swap, `Swap_executed` | yes | |
 | Statement (transaction fallback) | yes | balance-change path |
@@ -115,35 +118,39 @@ when `LIGHTSPARK_LIVE_TESTS=1` and the credentials are set; otherwise it prints 
 and passes, which is what CI sees. Each run creates sandbox customers prefixed with a
 timestamp, using the suite's own timeouts (10 s per awaited state).
 
-Run on 2026-10-14 against the Grid sandbox: 3 passed, 8 failed.
+Run on 2026-10-14 with `Conformance.Config.usd` (USD over ACH): 4 passed, 8 failed.
 
 | Scenario | Result |
 | -------- | ------ |
 | create_customer is idempotent on our customer id | pass |
 | a KYC approval is published as an event and reported by kyc_status | pass |
+| a deposit is published once and credits the balance | pass |
 | a webhook with a bad signature is refused | pass |
-| an approved customer gets an EUR account with an IBAN | fail: no EUR accounts on this platform |
-| a deposit is published once and credits the balance | fail: no EUR account |
-| a payment confirmed by SCA settles and debits amount plus fee | fail: no EUR account |
-| initiating the same transfer twice pays once | fail: no EUR account |
-| a payment above the balance does not leave the account | fail: no EUR account |
-| a wrong SCA code is refused without naming a factor | fail: no EUR account |
+| an approved customer gets a USD account with a routing and account number | fail: timed out, the sandbox's routing number failed the ABA check digit |
+| a payment confirmed by SCA settles and debits amount plus fee | fail: same (no routing number on the account) |
+| initiating the same transfer twice pays once | fail: same |
+| a payment above the balance does not leave the account | fail: same |
+| a wrong SCA code is refused without naming a factor | fail: same |
+| a virtual card is approved, and declined with 57 once frozen | fail: same (cards are not offered anyway) |
 | a test delivery arrives as a Ping event | fail: `WEBHOOK_ENDPOINT_NOT_SET` |
-| a virtual card is approved, and declined with 57 once frozen | fail: no EUR account (cards are not offered anyway) |
+| verify_payee answers, and a simulated answer is returned | fail: `simulate_payee_check` cannot set Grid's answer |
 
-The suite is written around an EUR account with an IBAN; this platform holds USD, USDC,
-USDT and USDB only (`GET /config`), so every scenario that opens one stops there. The
-same steps in dollars run in `test/live/walk.exe` (`LIGHTSPARK_LIVE_WALK=1`), which
-passed on the same day: deposit, fee quote, a SEPA payout settled and paid once on
-resend, a refused payout refunded, a conversion, a USDC wallet payout and a statement
-whose lines add up. It prints statuses and amounts, never ids or personal data.
+The sandbox gives each USD account a random routing number; 4 of the 25 on the platform
+pass the ABA check digit, so `Account.Address.Us_account` is usually absent there (a
+production routing number is valid). Six scenarios wait for it first. An earlier run with
+the EUR configuration passed 3 of 11 (the platform holds no EUR). The same steps in
+dollars run in `test/live/walk.exe` (`LIGHTSPARK_LIVE_WALK=1`), which passed on the same
+day: deposit, fee quote, a SEPA payout settled and paid once on resend, a refused payout
+refunded, ACH and RTP payouts settled within a minute, a conversion, a USDC wallet payout
+and a statement whose lines add up. It prints statuses and amounts, never ids or
+personal data.
 
 ## Tests
 
 `dune test` runs the expect tests on redacted sandbox responses and documented bodies
 (`test/fixtures`: ids, e-mails, account numbers and addresses replaced): unit
-conversions with a round-trip property, KYC mapping and event ids, accounts and US bank
-details, every transaction status and failure reason, payees, and the adapter over a
+conversions with a round-trip property, KYC mapping and event ids, accounts and US
+account details, US rails, every transaction status and failure reason, payees, and the adapter over a
 fake transport (payouts with and without SCA, overdraft, swap, signed webhooks and
 redelivery). Then the two live executables, which skip without credentials.
 
@@ -157,10 +164,13 @@ live runs.
 
 - **EUR accounts and IBANs**: the sandbox platform supports USD, USDC, USDT and USDB
   only, so the conformance suite's EUR scenarios cannot run here (see above).
-- **US domestic payouts** (ACH, RTP, FedNow, wire to a routing and account number) and
-  **US account details on `Account.t`** need a payments-core rail and destination and a
-  non-IBAN address in banking-provider; until then `us_bank_details` exposes the deposit
-  details and payouts go to IBANs, wallets and Lightning.
+- **Sandbox routing numbers** fail the ABA check digit about nine times in ten; such an
+  account has no `Us_account` address.
+- **Wire payouts** are refused by Grid without the beneficiary's postal address, which
+  payments-core beneficiaries do not carry. **FedNow** has no payments-core rail.
+- **Fee quotes in the account's own currency** (ACH, RTP) are zero: Grid publishes no
+  rate for USD to USD, and the real fee (0.05 USD ACH, 0.50 USD RTP on the sandbox)
+  arrives with the payout's quote.
 - **Cards** are not offered by this adapter; the card calls return an error.
 - **Standing orders**: Grid has no scheduled payments.
 - **Sandbox outcomes** are chosen when the customer or payee is created (name and account
@@ -177,8 +187,6 @@ live runs.
 - **Balance-change statements** answered 501 for customer accounts; statements are built
   from the newest transactions (`transactions_pages`).
 - **Conversions done outside the adapter** show up as deposits into the bought currency.
-- **Wallet networks** without a payments-core `Network.t` (Base, Arbitrum, Plasma,
-  Spark) are left out of account addresses and cannot be paid.
 
 ## Used by
 

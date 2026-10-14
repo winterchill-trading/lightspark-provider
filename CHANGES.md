@@ -6,7 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## Unreleased
 
+### Changed
+
+- `Store.Transfer_record` stores `Rail.Stable.V2` and `Transfer.Details.Stable.V2` (new
+  digest).
+
+### Removed
+
+- `Adapter.us_bank_details` and `Account_map.Us_bank`: the routing and account number
+  are an `Account.Address.Us_account` now.
+
 ### Added
+
+- US domestic payouts: `Ach` (and Same Day), `Rtp` and `Fedwire` drafts to a
+  `Beneficiary.Us_account` become `USD_ACCOUNT` external accounts and Grid quotes on
+  `ACH`, `ACH_SAME_DAY`, `RTP` and `WIRE`; US transactions report those rails with
+  `Us_domestic` details. USD accounts carry `Account.Address.Us_account`.
+- Base, Arbitrum, Plasma and Spark wallets in account addresses and payouts.
 
 - `Adapter`: banking-provider's `Provider.S` and `Sandbox.S` over the Grid API:
   customers found or created by our id, KYC and contact verification, accounts opened by

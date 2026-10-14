@@ -4,7 +4,8 @@
 
 This library implements `banking-provider`'s `Provider.S` and `Sandbox.S` over the
 Lightspark Grid API (`lightspark-client`): customers and KYC, USD and stablecoin accounts,
-cross-border payouts with Grid's FX quotes, wallet and Lightning payouts, conversions as
+US payouts over ACH and RTP, cross-border
+payouts with Grid's FX quotes, wallet and Lightning payouts, conversions as
 swaps, statements and signed webhooks normalized into `banking-provider` events. Cards and
 standing orders answer an error.
 
@@ -72,8 +73,10 @@ Check with `gh run list --limit 1`, then at most one `gh run watch <id> --exit-s
 
 ## Pitfalls
 
-- The sandbox platform holds USD, USDC, USDT and USDB only; the conformance suite opens an
-  EUR account first, so only 3 of 11 scenarios can pass; `test/live/walk.ml` covers USD.
+- The live suite runs `Conformance.Config.usd`; sandbox USD accounts get random routing
+  numbers that mostly fail the ABA check digit, so the account scenarios time out (4 of
+  12 pass); `test/live/walk.ml` covers USD payouts end to end.
+- Wire payouts need the beneficiary's postal address, which payments-core lacks.
 - USD to EUR quotes need `senderCustomerInfo.PURPOSE_OF_PAYMENT`.
 - `totalBalance` lags settled payouts on the sandbox; balances use `balance` only.
 - Balance-change statements answer 501 for customer accounts; statements fall back to
