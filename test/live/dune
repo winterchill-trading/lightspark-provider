@@ -1,0 +1,30 @@
+; The conformance suite and a USD walk against the Grid sandbox. [dune test] runs both,
+; but they only talk to Grid when the credentials are set and LIGHTSPARK_LIVE_TESTS=1
+; (the walk also wants LIGHTSPARK_LIVE_WALK=1); otherwise each prints one line and exits
+; 0, which is what CI (no credentials) sees. Each run creates sandbox customers.
+
+(executables
+ (names live walk)
+ (libraries
+  core
+  async
+  core_unix.command_unix
+  banking-provider
+  kyc-core
+  ledger
+  money
+  payments-core
+  lightspark-client
+  lightspark-provider)
+ (preprocess
+  (pps ppx_jane)))
+
+(rule
+ (alias runtest)
+ (action
+  (run %{exe:live.exe})))
+
+(rule
+ (alias runtest)
+ (action
+  (run %{exe:walk.exe})))
