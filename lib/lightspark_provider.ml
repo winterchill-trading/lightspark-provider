@@ -7,3 +7,4 @@ module Payee = Payee
 module Kyc_map = Kyc_map
 module Grid_time = Grid_time
 module Account_map = Account_map
+module Tx_map = Tx_map
