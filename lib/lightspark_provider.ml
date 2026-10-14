@@ -4,3 +4,4 @@ module Refs = Refs
 module Units = Units
 module Grid_api = Grid_api
 module Payee = Payee
+module Kyc_map = Kyc_map
