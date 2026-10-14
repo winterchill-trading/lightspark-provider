@@ -292,10 +292,13 @@ module Destination : sig
         }
 end
 
-(** [POST /quotes] from an internal account. [locked] is the side whose amount is fixed. *)
+(** [POST /quotes] from an internal account. [locked] is the side whose amount is fixed.
+    [sender_info] fills [senderCustomerInfo], the sender fields a corridor asks for (a
+    quote without one fails with [MISSING_MANDATORY_USER_INFO]). *)
 val create_quote
   :  ?description:string
   -> ?remittance:string
+  -> ?sender_info:(string * string) list
   -> ?immediately_execute:bool
   -> t
   -> source_account_id:string

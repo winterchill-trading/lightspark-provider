@@ -707,6 +707,7 @@ end
 let create_quote
   ?description
   ?remittance
+  ?(sender_info = [])
   ?(immediately_execute = false)
   t
   ~source_account_id
@@ -736,6 +737,12 @@ let create_quote
            ; Some ("immediatelyExecute", `Bool immediately_execute)
            ; Option.map description ~f:(fun d -> "description", `String d)
            ; Option.map remittance ~f:(fun r -> "remittanceInformation", `String r)
+           ; (if List.is_empty sender_info
+              then None
+              else
+                Some
+                  ( "senderCustomerInfo"
+                  , `Assoc (List.map sender_info ~f:(fun (k, v) -> k, `String v)) ))
            ])
     in
     request
