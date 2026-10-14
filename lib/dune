@@ -1,0 +1,19 @@
+(library
+ (name lightspark_provider)
+ (public_name lightspark-provider)
+ (libraries
+  core
+  async
+  async_kernel
+  yojson
+  uri
+  zarith
+  money
+  ledger
+  kyc-core
+  payments-core
+  card-core
+  banking-provider
+  lightspark-client)
+ (preprocess
+  (pps ppx_jane)))
