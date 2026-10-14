@@ -17,6 +17,6 @@
  "customerId": "Customer:00000000-0000-0000-0000-000000000001",
  "defaultUmaDepositAccount": false,
  "id": "ExternalAccount:00000000-0000-0000-0000-000000000001",
- "platformAccountId": "ben-lw1791958769",
+ "platformAccountId": "ben-1",
  "status": "ACTIVE"
 }
