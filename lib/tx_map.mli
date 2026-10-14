@@ -37,9 +37,10 @@ val event_id : Grid_api.Transaction.t -> Event_id.t
 (** [None] for statuses that say nothing to the transfer (see above). *)
 val outgoing_update : Grid_api.Transaction.t -> Transfer_update.t option
 
-(** On-chain when Grid reports a hash or a network, Lightning when the rail says so, and
-    [Intraledger] otherwise: US bank rails (ACH, RTP, FedNow, wire) and Grid's own book
-    transfers have no {!Payments_core.Rail.t} yet. *)
+(** On-chain when Grid reports a hash or a network; SEPA, SEPA Instant or Lightning when
+    the payment rail says so; [Intraledger] otherwise: US bank rails (ACH, RTP, FedNow,
+    wire), the other countries' rails and Grid's own book transfers (sandbox credits,
+    conversions) have no {!Payments_core.Rail.t} yet. *)
 val rail : Grid_api.Transaction.t -> Rail.t
 
 val details : Grid_api.Transaction.t -> Transfer.Details.t

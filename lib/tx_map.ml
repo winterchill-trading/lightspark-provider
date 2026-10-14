@@ -47,6 +47,8 @@ let rail (tx : Grid_api.Transaction.t) : Rail.t =
   match Option.bind tx.network ~f:network_of_grid, tx.payment_rail with
   | Some n, _ -> Onchain n
   | None, Some "LIGHTNING" -> Lightning
+  | None, Some "SEPA" -> Sepa_credit
+  | None, Some "SEPA_INSTANT" -> Sepa_instant
   | None, _ -> Intraledger
 ;;
 
@@ -108,7 +110,13 @@ let incoming ~account (tx : Grid_api.Transaction.t) =
          ; fee = Money.Amount.zero (Money.Amount.currency amount)
          ; from =
              External
-               { name = Option.value tx.source_type ~default:"unknown"
+               { name =
+                   (match tx.source_type with
+                    | Some "ACCOUNT" -> "account at the provider"
+                    | Some "UMA_ADDRESS" -> "UMA sender"
+                    | Some "REALTIME_FUNDING" -> "bank deposit"
+                    | Some other -> other
+                    | None -> "unknown")
                ; detail = Option.value tx.source_account_id ~default:""
                }
          ; reference = Option.value tx.description ~default:""
