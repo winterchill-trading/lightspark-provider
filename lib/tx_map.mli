@@ -47,6 +47,9 @@ val details : Grid_api.Transaction.t -> Transfer.Details.t
 (** The events for an incoming transaction to [account], with their ids. *)
 val incoming : account:Account_ref.t -> Grid_api.Transaction.t -> Event.t list Or_error.t
 
+(** An amount Grid reported, or an error naming the field that was missing. *)
+val money_of : Grid_api.Amount.t option -> what:string -> Money.Amount.t Or_error.t
+
 (** The fee Grid charged on an outgoing transaction, in the sent currency (zero when it
     reports none). *)
 val fee : Grid_api.Transaction.t -> Money.Amount.t Or_error.t
