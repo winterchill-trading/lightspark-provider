@@ -878,16 +878,20 @@ let external_account t ~customer_id ~currency ~account_info ~platform_account_id
             ~idempotency_key:(customer_id ^ ":" ^ platform_account_id ^ ":" ^ currency)))
 ;;
 
+let payee_check_of (e : Grid_api.External_account.t) : Beneficiary.Payee_check.t option =
+  match e.beneficiary_verification with
+  | Some "MATCHED" -> Some Match
+  | Some "PARTIAL_MATCH" ->
+    (* Grid reports a partial match without the name the bank holds. *)
+    Some (Close_match { suggested_name = "" })
+  | Some "NOT_MATCHED" -> Some No_match
+  | Some ("UNSUPPORTED" | "CHECKED_BY_RECEIVING_FI") -> Some Not_possible
+  | Some "PENDING" -> Some Unavailable
+  | _ -> None
+;;
+
 let payee_check_event t (beneficiary : Beneficiary.t) (e : Grid_api.External_account.t) =
-  let result : Beneficiary.Payee_check.t option =
-    match e.beneficiary_verification with
-    | Some "MATCHED" -> Some Match
-    | Some "PARTIAL_MATCH" -> Some (Close_match { suggested_name = beneficiary.name })
-    | Some "NOT_MATCHED" -> Some No_match
-    | Some ("UNSUPPORTED" | "CHECKED_BY_RECEIVING_FI") -> Some Not_possible
-    | _ -> None
-  in
-  Option.iter result ~f:(fun result ->
+  Option.iter (payee_check_of e) ~f:(fun result ->
     publish
       t
       (event
@@ -898,6 +902,34 @@ let payee_check_event t (beneficiary : Beneficiary.t) (e : Grid_api.External_acc
               (Option.value e.beneficiary_verification ~default:""))
          ~at:(now ())
          (Payee_check { beneficiary = beneficiary.id; result })))
+;;
+
+(* Grid checks the name when it creates the external account for a payee (only some rails
+   do), so a check is creating, or finding, that account. *)
+let verify_payee t ~customer (beneficiary : Beneficiary.t) =
+  match Payee.eur_account beneficiary ~payment_rail:None with
+  | None | Some (Internal _) -> return (Ok Beneficiary.Payee_check.Not_possible)
+  | Some (External { currency; account_info; platform_account_id; _ }) ->
+    let customer_id = Refs.customer_id customer in
+    (match%map
+       external_account t ~customer_id ~currency ~account_info ~platform_account_id
+     with
+     | Ok e ->
+       payee_check_event t beneficiary e;
+       Ok (Option.value (payee_check_of e) ~default:Beneficiary.Payee_check.Not_possible)
+     | Error e ->
+       (* The sandbox refuses an account it reports invalid (suffix 105) with a 400. *)
+       if String.is_substring (Error.to_string_hum e) ~substring:"status 400"
+       then Ok Beneficiary.Payee_check.Account_not_found
+       else Error e)
+;;
+
+let simulate_payee_check _t (_ : Beneficiary.Id.t) (_ : Beneficiary.Payee_check.t) =
+  return
+    (Or_error.error_string
+       "the Grid sandbox fixes the name check by the last three digits of the account \
+        number (102 no match, 103 partial, 104 pending, 105 invalid, 106 unsupported, \
+        107 checked by the receiving bank); there is no call to set it")
 ;;
 
 let start_transfer t ~customer_id ~account_id (draft : Transfer.t) =
