@@ -72,6 +72,18 @@ notes in [lightspark-client](https://github.com/winterchill-trading/lightspark-c
 - External accounts report `beneficiaryVerificationStatus`; SEPA accounts came back
   `UNSUPPORTED`.
 
+## US rails (measured 2026-10-14)
+
+- Payouts to a `USD_ACCOUNT` external account (routing number, account number, checking
+  or savings) over `ACH` cost 0.05 USD and over `RTP` 0.50 USD on the sandbox; both
+  settled within a minute (`PENDING`, `PROCESSING`, `COMPLETED`).
+- `WIRE` is refused with `400 INVALID_INPUT` ("Beneficiary postal address is required for
+  WIRE transfers").
+- `GET /exchange-rates` has no USD to USD rates (`INVALID_INPUT`), so a domestic fee is
+  only known from the quote.
+- Sandbox USD accounts get random routing numbers: 4 of the 25 on the platform passed the
+  ABA check digit.
+
 ## SCA
 
 - Quotes for customers in SCA regions answer `PENDING_AUTHORIZATION` with an

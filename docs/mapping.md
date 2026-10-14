@@ -36,7 +36,7 @@ object. The store is needed only for "which quote is this transfer".
 | `open_account`          | `GET /config` (cached), `GET /customers/internal-accounts?customerId=` (polled) | Grid opens one account per supported currency itself; opening is waiting up to `provisioning_timeout`; a currency the platform does not hold is an error |
 | `accounts`              | `GET /customers/internal-accounts?customerId=` (all pages)                | currencies `money` cannot represent are skipped |
 | `balance`               | the same list                                                             | `available = posted = balance`, `held = 0` (see api-notes) |
-| `enrich_account`        | the same list                                                             | addresses come with the account (funding instructions) |
+| `enrich_account`        | the same list                                                             | addresses come with the account (funding instructions): IBAN, `Us_account` (routing and account number), wallets |
 | `statement`             | `GET /internal-accounts/{id}/balance-changes`; on 501 `GET /transactions?customerId=` | lines walk back from the current balance |
 | `quote_fee`             | `GET /exchange-rates?sourceCurrency=&destinationCurrency=` twice (rate, then fees for the size) | same currency: zero (Grid publishes no fee); the fee and total are in the account's currency |
 | `initiate_transfer`     | `GET`/`POST /customers/external-accounts`, `POST /quotes` (receiving amount locked), `POST /quotes/{id}/execute`, `GET /transactions/{id}` | an SCA region quote answers `PENDING_AUTHORIZATION`: `Challenge` |
@@ -112,13 +112,18 @@ An amount with more digits than the target unit is refused, never rounded.
 | -------------------------------------------- | ------------------------------------- | ------------ | -------------- |
 | `Sepa_credit`, IBAN                          | `EUR_ACCOUNT`                         | `SEPA`       | EUR |
 | `Sepa_instant`, IBAN                         | `EUR_ACCOUNT`                         | `SEPA_INSTANT` | EUR |
-| `Onchain Ethereum / Polygon / Solana / Tron` | `<NETWORK>_WALLET`                    | Grid's choice | the draft's stablecoin |
+| `Ach { same_day = false }`, US account      | `USD_ACCOUNT` (checking or savings)   | `ACH`        | USD |
+| `Ach { same_day = true }`, US account       | `USD_ACCOUNT`                         | `ACH_SAME_DAY` | USD |
+| `Rtp`, US account                           | `USD_ACCOUNT`                         | `RTP`        | USD |
+| `Fedwire`, US account                       | `USD_ACCOUNT`                         | `WIRE` (refused without a beneficiary address) | USD |
+| `Onchain` on Ethereum, Polygon, Solana, Tron, Base, Arbitrum, Plasma or Spark | `<NETWORK>_WALLET`                    | Grid's choice | the draft's stablecoin |
 | `Lightning`, invoice or Lightning address    | `LIGHTNING`                           | Grid's choice | BTC |
 | `Intraledger`, an account reference          | none: the internal account directly   | none         | same currency |
 
 Incoming transactions are reported on `Onchain` when Grid gives a hash or a network,
-`Sepa_credit`/`Sepa_instant`/`Lightning` when its rail says so, and `Intraledger`
-otherwise (US bank rails, sandbox credits, conversions).
+`Sepa_credit`, `Sepa_instant`, `Ach` (as PPD; `ACH_SAME_DAY` same-day), `Rtp`, `Fedwire`
+(`WIRE`) or `Lightning` when its rail says so (US rails with `Us_domestic` details), and
+`Intraledger` otherwise (FedNow, sandbox credits, conversions).
 
 ## KYC
 
@@ -145,12 +150,11 @@ not carried by `confirm_sca` (it takes a code).
 ## Gaps
 
 - **Cards**: not offered here (Grid has card endpoints; out of this adapter's scope).
-- **US domestic payouts** (ACH, RTP, FedNow, wire to a routing and account number): no
-  payments-core rail or beneficiary destination for them yet; `us_bank_details` gives
-  the deposit side only.
-- **Non-IBAN account details** on `Account.t`: USD routing and account numbers are not
-  representable; Base, Arbitrum, Plasma and Spark wallet addresses neither (no
-  `Network.t`).
+- **Sandbox routing numbers** are random and mostly fail the ABA check digit, so the
+  account then carries no `Us_account` address.
+- **Wire**: Grid requires the beneficiary's postal address, which payments-core
+  beneficiaries do not carry. **FedNow** has no payments-core rail.
+- **SWIFT** funding instructions have no `Account.Address.t`.
 - **Standing orders**: none at Grid.
 - **Sandbox**: KYC outcomes and payout outcomes are fixed at creation by magic
   suffixes; there is no call to change them afterwards. `ping` needs a webhook URL set
