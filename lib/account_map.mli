@@ -1,4 +1,4 @@
-(** Grid internal accounts as {!Banking_provider.Account.t}.
+(** Grid internal accounts as [Banking_provider.Account.t].
 
     A Grid customer gets one internal account per currency the platform supports (on the
     sandbox platform: USD, USDC, USDT and an embedded USDB wallet), created by Grid a

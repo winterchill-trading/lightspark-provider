@@ -27,7 +27,7 @@ open Banking_provider
 
 val status : string option -> Kyc_core.Status.t
 
-(** The status and steps as {!Banking_provider.Customer.Kyc_status.t}. Steps whose state
+(** The status and steps as [Banking_provider.Customer.Kyc_status.t]. Steps whose state
     has not changed kind since [previous] keep their earlier value (and so their
     verification time); new verifications are stamped [at], since Grid does not say when
     they happened. *)

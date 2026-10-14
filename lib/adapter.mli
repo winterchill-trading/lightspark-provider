@@ -1,4 +1,4 @@
-(** {!Banking_provider.Provider.S} and {!Banking_provider.Sandbox.S} over the Lightspark
+(** [Banking_provider.Provider.S] and [Banking_provider.Sandbox.S] over the Lightspark
     Grid API ([lightspark-client]).
 
     {b Scope.} Customers and their KYC state, the accounts Grid opens for each customer
@@ -20,8 +20,8 @@
     {e receiving} amount locked: the draft's amount is what the payee gets, and the fee
     and the debit are in the account's currency. Customers outside SCA regions get no
     challenge and the quote is executed at once; otherwise the quote waits in
-    [PENDING_AUTHORIZATION] and its challenge becomes a
-    {!Banking_provider.Sca_challenge.t} answered with {!confirm_sca}.
+    [PENDING_AUTHORIZATION] and its challenge becomes a [Banking_provider.Sca_challenge.t]
+    answered with {!confirm_sca}.
 
     {b Events.} Grid posts webhooks to the URL configured in its dashboard, signed with
     the platform's P-256 key; a service passes each delivery to {!ingest_webhook}. Without
@@ -33,8 +33,8 @@
 
     {b Sandbox.} Grid has no explicit sandbox flag; [lightspark-client] treats a platform
     whose UMA domain contains [sandbox] as one and refuses money-moving writes elsewhere
-    unless the config is [Live]. The {!Banking_provider.Sandbox.S} calls also refuse
-    [Live] configs. *)
+    unless the config is [Live]. The [Banking_provider.Sandbox.S] calls also refuse [Live]
+    configs. *)
 
 open! Core
 open Banking_provider

@@ -26,7 +26,7 @@
     An incoming transaction becomes an [Incoming_transfer] (id [tx:<id>:in], settled when
     [COMPLETED]); its completion is also published as [Transfer Settled] and a later
     failure as [Transfer Returned] (after settlement) or [Rejected], all on our id
-    {!Banking_provider.Event.incoming_transfer_id}. Grid sends no ISO 20022 reason codes;
+    [Banking_provider.Event.incoming_transfer_id]. Grid sends no ISO 20022 reason codes;
     [MS03] stands in where none of the above fits. *)
 
 open! Core
@@ -41,7 +41,7 @@ val outgoing_update : Grid_api.Transaction.t -> Transfer_update.t option
 (** On-chain when Grid reports a hash or a network; SEPA, SEPA Instant, ACH (as PPD), Same
     Day ACH, RTP, Fedwire ([WIRE]) or Lightning when the payment rail says so;
     [Intraledger] otherwise: FedNow, the other countries' rails and Grid's own book
-    transfers (sandbox credits, conversions) have no {!Payments_core.Rail.t}. *)
+    transfers (sandbox credits, conversions) have no [Payments_core.Rail.t]. *)
 val rail : Grid_api.Transaction.t -> Rail.t
 
 val details : Grid_api.Transaction.t -> Transfer.Details.t
