@@ -1,0 +1,27 @@
+{
+ "id": "Quote:00000000-0000-0000-0000-000000000007",
+ "status": "PENDING",
+ "createdAt": "2026-10-14T06:30:00Z",
+ "expiresAt": "2026-10-14T06:35:00Z",
+ "source": {
+  "sourceType": "ACCOUNT",
+  "accountId": "InternalAccount:00000000-0000-0000-0000-000000000001"
+ },
+ "destination": {
+  "destinationType": "ACCOUNT",
+  "accountId": "ExternalAccount:00000000-0000-0000-0000-000000000001"
+ },
+ "sendingCurrency": {
+  "code": "USD",
+  "decimals": 2
+ },
+ "receivingCurrency": {
+  "code": "EUR",
+  "decimals": 2
+ },
+ "totalSendingAmount": 3438,
+ "totalReceivingAmount": 3000,
+ "exchangeRate": 1.126,
+ "feesIncluded": 60,
+ "transactionId": "Transaction:00000000-0000-0000-0000-000000000007"
+}

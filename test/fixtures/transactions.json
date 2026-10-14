@@ -1,0 +1,125 @@
+{
+ "data": [
+  {
+   "createdAt": "2026-10-14T06:20:49.362472Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "description": "conversion",
+   "destination": {
+    "accountId": "InternalAccount:00000000-0000-0000-0000-000000000001",
+    "destinationType": "ACCOUNT"
+   },
+   "direction": "CREDIT",
+   "exchangeRate": 0.0001,
+   "fees": 0,
+   "id": "Transaction:00000000-0000-0000-0000-000000000001",
+   "platformCustomerId": "customer-1",
+   "quoteId": "Quote:00000000-0000-0000-0000-000000000001",
+   "receivedAmount": {
+    "amount": 10000000,
+    "currency": {
+     "code": "USDC",
+     "decimals": 6,
+     "name": "USD Coin",
+     "symbol": "usdc"
+    }
+   },
+   "sentAmount": {
+    "amount": 1000,
+    "currency": {
+     "code": "USD",
+     "decimals": 2,
+     "name": "US Dollar",
+     "symbol": "$"
+    }
+   },
+   "settledAt": "2026-10-14T06:20:51.089348Z",
+   "source": {
+    "accountId": "InternalAccount:00000000-0000-0000-0000-000000000002",
+    "currency": "USD",
+    "sourceType": "ACCOUNT"
+   },
+   "status": "COMPLETED",
+   "type": "INCOMING",
+   "updatedAt": "2026-10-14T06:20:51.115093Z"
+  },
+  {
+   "createdAt": "2026-10-14T06:19:40.026839Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "description": "invoice 1",
+   "destination": {
+    "accountId": "ExternalAccount:00000000-0000-0000-0000-000000000001",
+    "destinationType": "ACCOUNT"
+   },
+   "direction": "DEBIT",
+   "exchangeRate": 1.126,
+   "expectedSettlementAt": null,
+   "fees": 60,
+   "id": "Transaction:00000000-0000-0000-0000-000000000002",
+   "paymentInstructions": [],
+   "paymentRail": "SEPA",
+   "platformCustomerId": "customer-1",
+   "platformFees": 0,
+   "quoteId": "Quote:00000000-0000-0000-0000-000000000002",
+   "railSelectionMode": "MANUAL",
+   "receivedAmount": {
+    "amount": 3000,
+    "currency": {
+     "code": "EUR",
+     "decimals": 2,
+     "name": "Euro",
+     "symbol": "€"
+    }
+   },
+   "sentAmount": {
+    "amount": 3438,
+    "currency": {
+     "code": "USD",
+     "decimals": 2,
+     "name": "US Dollar",
+     "symbol": "$"
+    }
+   },
+   "settledAt": "2026-10-14T06:20:46.727764Z",
+   "settlementTimelineSeconds": null,
+   "source": {
+    "accountId": "InternalAccount:00000000-0000-0000-0000-000000000002",
+    "currency": "USD",
+    "sourceType": "ACCOUNT"
+   },
+   "status": "COMPLETED",
+   "type": "OUTGOING",
+   "updatedAt": "2026-10-14T06:20:46.780955Z"
+  },
+  {
+   "createdAt": "2026-10-14T06:19:35.590211Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "description": "sandbox deposit 1 20261014061935183914000Z",
+   "destination": {
+    "accountId": "InternalAccount:00000000-0000-0000-0000-000000000002",
+    "destinationType": "ACCOUNT"
+   },
+   "direction": "CREDIT",
+   "id": "Transaction:00000000-0000-0000-0000-000000000003",
+   "platformCustomerId": "customer-1",
+   "receivedAmount": {
+    "amount": 10000,
+    "currency": {
+     "code": "USD",
+     "decimals": 2,
+     "name": "US Dollar",
+     "symbol": "$"
+    }
+   },
+   "source": {
+    "currency": "USD",
+    "sourceType": "UMA_ADDRESS",
+    "umaAddress": "$test.user@examplesandbox.umaaas.uma.money"
+   },
+   "status": "COMPLETED",
+   "type": "INCOMING",
+   "updatedAt": "2026-10-14T06:19:35.609369Z"
+  }
+ ],
+ "hasMore": false,
+ "totalCount": 3
+}

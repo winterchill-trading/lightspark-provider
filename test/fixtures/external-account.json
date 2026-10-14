@@ -1,0 +1,22 @@
+{
+ "accountInfo": {
+  "accountType": "EUR_ACCOUNT",
+  "beneficiary": {
+   "beneficiaryType": "INDIVIDUAL",
+   "countryOfResidence": "DE",
+   "fullName": "Test User"
+  },
+  "iban": "DE89370400440532013000",
+  "paymentRails": [
+   "SEPA_INSTANT"
+  ],
+  "swiftCode": "XXXXUSXXXXX"
+ },
+ "beneficiaryVerificationStatus": "UNSUPPORTED",
+ "currency": "EUR",
+ "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+ "defaultUmaDepositAccount": false,
+ "id": "ExternalAccount:00000000-0000-0000-0000-000000000001",
+ "platformAccountId": "ben-lw1791958769",
+ "status": "ACTIVE"
+}

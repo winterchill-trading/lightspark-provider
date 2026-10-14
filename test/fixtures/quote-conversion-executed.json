@@ -1,0 +1,33 @@
+{
+ "createdAt": "2026-10-14T06:20:49.345157Z",
+ "destination": {
+  "accountId": "InternalAccount:00000000-0000-0000-0000-000000000001",
+  "destinationType": "ACCOUNT"
+ },
+ "exchangeRate": 1.0,
+ "expiresAt": "2026-10-14T06:23:49.345133Z",
+ "feesIncluded": 0,
+ "id": "Quote:00000000-0000-0000-0000-000000000001",
+ "paymentInstructions": [],
+ "platformFeesIncluded": 0,
+ "receivingCurrency": {
+  "code": "USDC",
+  "decimals": 6,
+  "name": "USD Coin",
+  "symbol": "usdc"
+ },
+ "sendingCurrency": {
+  "code": "USD",
+  "decimals": 2,
+  "name": "US Dollar",
+  "symbol": "$"
+ },
+ "source": {
+  "accountId": "InternalAccount:00000000-0000-0000-0000-000000000002",
+  "sourceType": "ACCOUNT"
+ },
+ "status": "PROCESSING",
+ "totalReceivingAmount": 10000000,
+ "totalSendingAmount": 1000,
+ "transactionId": "Transaction:00000000-0000-0000-0000-000000000001"
+}

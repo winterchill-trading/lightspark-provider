@@ -1,0 +1,21 @@
+{
+ "address": {
+  "city": "Seattle",
+  "country": "US",
+  "line1": "1 Test Street",
+  "postalCode": "98101",
+  "state": "WA"
+ },
+ "birthDate": "1990-01-15",
+ "createdAt": "2026-10-14T06:19:31.821066Z",
+ "customerType": "INDIVIDUAL",
+ "email": "user@example.com",
+ "fullName": "Test User",
+ "id": "Customer:00000000-0000-0000-0000-000000000001",
+ "isDeleted": false,
+ "kycStatus": "APPROVED",
+ "nationality": "US",
+ "platformCustomerId": "customer-1",
+ "umaAddress": "$test.user@examplesandbox.umaaas.uma.money",
+ "updatedAt": "2026-10-14T06:19:31.848699Z"
+}

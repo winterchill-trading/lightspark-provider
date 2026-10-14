@@ -1,0 +1,48 @@
+{
+ "createdAt": "2026-10-14T06:19:40.026839Z",
+ "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+ "description": "invoice 1",
+ "destination": {
+  "accountId": "ExternalAccount:00000000-0000-0000-0000-000000000001",
+  "destinationType": "ACCOUNT"
+ },
+ "direction": "DEBIT",
+ "exchangeRate": 1.126,
+ "expectedSettlementAt": null,
+ "fees": 60,
+ "id": "Transaction:00000000-0000-0000-0000-000000000001",
+ "paymentInstructions": [],
+ "paymentRail": "SEPA",
+ "platformCustomerId": "customer-1",
+ "platformFees": 0,
+ "quoteId": "Quote:00000000-0000-0000-0000-000000000001",
+ "railSelectionMode": "MANUAL",
+ "receivedAmount": {
+  "amount": 3000,
+  "currency": {
+   "code": "EUR",
+   "decimals": 2,
+   "name": "Euro",
+   "symbol": "€"
+  }
+ },
+ "sentAmount": {
+  "amount": 3438,
+  "currency": {
+   "code": "USD",
+   "decimals": 2,
+   "name": "US Dollar",
+   "symbol": "$"
+  }
+ },
+ "settledAt": "2026-10-14T06:20:46.727764Z",
+ "settlementTimelineSeconds": null,
+ "source": {
+  "accountId": "InternalAccount:00000000-0000-0000-0000-000000000001",
+  "currency": "USD",
+  "sourceType": "ACCOUNT"
+ },
+ "status": "COMPLETED",
+ "type": "OUTGOING",
+ "updatedAt": "2026-10-14T06:20:46.780955Z"
+}

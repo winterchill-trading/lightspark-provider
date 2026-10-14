@@ -1,0 +1,29 @@
+{
+ "data": [
+  {
+   "destinationCurrency": {
+    "code": "EUR",
+    "decimals": 2,
+    "name": "Euro",
+    "symbol": "€"
+   },
+   "destinationPaymentRail": "SEPA",
+   "exchangeRate": 1.117625011580617,
+   "fees": {
+    "fixed": 54,
+    "total": 60
+   },
+   "maxSendingAmount": 500000,
+   "minSendingAmount": 2293,
+   "receivingAmount": 2947,
+   "sendingAmount": 3353,
+   "sourceCurrency": {
+    "code": "USD",
+    "decimals": 2,
+    "name": "United States Dollar",
+    "symbol": "$"
+   },
+   "updatedAt": "2026-10-14T06:19:00.168681Z"
+  }
+ ]
+}

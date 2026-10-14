@@ -1,0 +1,97 @@
+{
+ "cardConfigs": {
+  "maxSpendPerDay": null,
+  "maxSpendPerTransaction": null,
+  "maxTransactionsPerDay": null,
+  "panRevealCssUrl": null,
+  "pinTargetOrigin": null
+ },
+ "createdAt": "2026-09-13T12:06:44.538767Z",
+ "embeddedWalletConfig": {
+  "appName": "example"
+ },
+ "feeConfigs": [],
+ "id": "Platform:00000000-0000-0000-0000-000000000001",
+ "isRegulatedFinancialInstitution": true,
+ "proxyUmaSubdomain": "examplesandbox",
+ "supportedCurrencies": [
+  {
+   "currencyCode": "USD",
+   "enabledTransactionTypes": [
+    "OUTGOING",
+    "INCOMING"
+   ],
+   "maxAmount": 5000000,
+   "minAmount": 100,
+   "providerRequiredCounterpartyCustomerFields": [
+    "FULL_NAME",
+    "FI_LEGAL_ENTITY_NAME"
+   ],
+   "requiredCounterpartyFields": [
+    {
+     "mandatory": true,
+     "name": "FULL_NAME"
+    }
+   ]
+  },
+  {
+   "currencyCode": "USDB",
+   "enabledTransactionTypes": [
+    "OUTGOING",
+    "INCOMING"
+   ],
+   "maxAmount": 1000000,
+   "minAmount": 100,
+   "providerRequiredCounterpartyCustomerFields": [
+    "FULL_NAME",
+    "FI_LEGAL_ENTITY_NAME"
+   ],
+   "requiredCounterpartyFields": [
+    {
+     "mandatory": true,
+     "name": "FULL_NAME"
+    }
+   ]
+  },
+  {
+   "currencyCode": "USDC",
+   "enabledTransactionTypes": [
+    "OUTGOING",
+    "INCOMING"
+   ],
+   "maxAmount": 1000000,
+   "minAmount": 100,
+   "providerRequiredCounterpartyCustomerFields": [
+    "FULL_NAME",
+    "FI_LEGAL_ENTITY_NAME"
+   ],
+   "requiredCounterpartyFields": [
+    {
+     "mandatory": true,
+     "name": "FULL_NAME"
+    }
+   ]
+  },
+  {
+   "currencyCode": "USDT",
+   "enabledTransactionTypes": [
+    "OUTGOING",
+    "INCOMING"
+   ],
+   "maxAmount": 1000000,
+   "minAmount": 100,
+   "providerRequiredCounterpartyCustomerFields": [
+    "FULL_NAME",
+    "FI_LEGAL_ENTITY_NAME"
+   ],
+   "requiredCounterpartyFields": [
+    {
+     "mandatory": true,
+     "name": "FULL_NAME"
+    }
+   ]
+  }
+ ],
+ "umaDomain": "examplesandbox.umaaas.uma.money",
+ "updatedAt": "2026-09-13T13:41:34.664641Z"
+}

@@ -1,0 +1,40 @@
+{
+ "counterpartyInformation": {
+  "FI_LEGAL_ENTITY_NAME": "Example Payout Partner",
+  "FULL_NAME": "Erika Payee",
+  "IDENTIFIER": "user@example.com",
+  "USER_TYPE": "INDIVIDUAL"
+ },
+ "createdAt": "2026-10-14T06:19:40.007808Z",
+ "destination": {
+  "accountId": "ExternalAccount:00000000-0000-0000-0000-000000000001",
+  "destinationType": "ACCOUNT"
+ },
+ "exchangeRate": 1.126,
+ "expiresAt": "2026-10-14T06:22:40.007784Z",
+ "feesIncluded": 60,
+ "id": "Quote:00000000-0000-0000-0000-000000000001",
+ "paymentInstructions": [],
+ "platformFeesIncluded": 0,
+ "purposeOfPayment": "GOODS_OR_SERVICES",
+ "receivingCurrency": {
+  "code": "EUR",
+  "decimals": 2,
+  "name": "Euro",
+  "symbol": "€"
+ },
+ "sendingCurrency": {
+  "code": "USD",
+  "decimals": 2,
+  "name": "US Dollar",
+  "symbol": "$"
+ },
+ "source": {
+  "accountId": "InternalAccount:00000000-0000-0000-0000-000000000001",
+  "sourceType": "ACCOUNT"
+ },
+ "status": "PENDING",
+ "totalReceivingAmount": 3000,
+ "totalSendingAmount": 3438,
+ "transactionId": "Transaction:00000000-0000-0000-0000-000000000001"
+}

@@ -1,0 +1,1 @@
+{"id":"Webhook:00000000-0000-0000-0000-000000000003","type":"CUSTOMER.KYC_APPROVED","timestamp":"2026-10-14T06:23:00Z","data":{"id":"Customer:00000000-0000-0000-0000-000000000002","platformCustomerId":"customer-2","customerType":"INDIVIDUAL","kycStatus":"APPROVED","createdAt":"2026-10-14T06:00:00Z","updatedAt":"2026-10-14T06:23:00Z"}}

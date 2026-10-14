@@ -1,0 +1,219 @@
+{
+ "data": [
+  {
+   "balance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDT",
+     "decimals": 6,
+     "name": "Tether",
+     "symbol": "usdt"
+    }
+   },
+   "createdAt": "2026-10-14T06:19:34.047486Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "fundingPaymentInstructions": [
+    {
+     "accountOrWalletInfo": {
+      "accountType": "ETHEREUM_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDT"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "TRON_WALLET",
+      "address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+      "assetType": "USDT"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "ARBITRUM_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDT"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "PLASMA_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDT"
+     }
+    }
+   ],
+   "id": "InternalAccount:00000000-0000-0000-0000-000000000001",
+   "status": "ACTIVE",
+   "totalBalance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDT",
+     "decimals": 6,
+     "name": "Tether",
+     "symbol": "usdt"
+    }
+   },
+   "type": "INTERNAL_CRYPTO",
+   "updatedAt": "2026-10-14T06:19:34.047486Z"
+  },
+  {
+   "balance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDC",
+     "decimals": 6,
+     "name": "USD Coin",
+     "symbol": "usdc"
+    }
+   },
+   "createdAt": "2026-10-14T06:19:33.011371Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "fundingPaymentInstructions": [
+    {
+     "accountOrWalletInfo": {
+      "accountType": "SOLANA_WALLET",
+      "address": "So11111111111111111111111111111111111111112",
+      "assetType": "USDC"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "BASE_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDC"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "ETHEREUM_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDC"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "POLYGON_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDC"
+     }
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountType": "ARBITRUM_WALLET",
+      "address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+      "assetType": "USDC"
+     }
+    }
+   ],
+   "id": "InternalAccount:00000000-0000-0000-0000-000000000002",
+   "status": "ACTIVE",
+   "totalBalance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDC",
+     "decimals": 6,
+     "name": "USD Coin",
+     "symbol": "usdc"
+    }
+   },
+   "type": "INTERNAL_CRYPTO",
+   "updatedAt": "2026-10-14T06:19:33.011371Z"
+  },
+  {
+   "balance": {
+    "amount": 10000,
+    "currency": {
+     "code": "USD",
+     "decimals": 2,
+     "name": "US Dollar",
+     "symbol": "$"
+    }
+   },
+   "createdAt": "2026-10-14T06:19:32.965647Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "fundingPaymentInstructions": [
+    {
+     "accountOrWalletInfo": {
+      "accountNumber": "000000001",
+      "accountType": "USD_ACCOUNT",
+      "bankAddress": "1 Example Street",
+      "bankName": "Example Bank",
+      "paymentRails": [
+       "ACH",
+       "WIRE",
+       "RTP",
+       "FEDNOW"
+      ],
+      "reference": "REF-EXAMPLE",
+      "routingNumber": "000000000"
+     },
+     "instructionsNotes": "Include the reference in the memo"
+    },
+    {
+     "accountOrWalletInfo": {
+      "accountHolderName": "Ada Sandbox",
+      "accountNumber": "000000001",
+      "accountType": "SWIFT_ACCOUNT",
+      "bankName": "Example Bank",
+      "country": "US",
+      "paymentRails": [
+       "SWIFT"
+      ],
+      "swiftCode": "XXXXUSXXXXX"
+     },
+     "instructionsNotes": "Include the reference in the memo"
+    }
+   ],
+   "id": "InternalAccount:00000000-0000-0000-0000-000000000003",
+   "status": "ACTIVE",
+   "totalBalance": {
+    "amount": 10000,
+    "currency": {
+     "code": "USD",
+     "decimals": 2,
+     "name": "US Dollar",
+     "symbol": "$"
+    }
+   },
+   "type": "INTERNAL_FIAT",
+   "updatedAt": "2026-10-14T06:19:35.585884Z"
+  },
+  {
+   "balance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDB",
+     "decimals": 6,
+     "name": "USDB",
+     "symbol": "$"
+    }
+   },
+   "createdAt": "2026-10-14T06:19:31.897058Z",
+   "customerId": "Customer:00000000-0000-0000-0000-000000000001",
+   "fundingPaymentInstructions": [
+    {
+     "accountOrWalletInfo": {
+      "accountType": "SPARK_WALLET",
+      "address": "sparkrt1example",
+      "assetType": "USDB"
+     }
+    }
+   ],
+   "id": "InternalAccount:00000000-0000-0000-0000-000000000004",
+   "status": "ACTIVE",
+   "totalBalance": {
+    "amount": 0,
+    "currency": {
+     "code": "USDB",
+     "decimals": 6,
+     "name": "USDB",
+     "symbol": "$"
+    }
+   },
+   "type": "EMBEDDED_WALLET",
+   "updatedAt": "2026-10-14T06:19:33.167522Z"
+  }
+ ],
+ "hasMore": false,
+ "totalCount": 4
+}
