@@ -55,12 +55,17 @@ module Config : sig
         does not tell *)
     ; end_user_ip : string option (** sent with SCA authorizations *)
     ; webhook_public_key : Lightspark_client.P256.public_key option
-    ; transactions_pages : int (** pages of 100 the poller reads per customer *)
+    ; transactions_pages : int
+    (** pages of 100 the poller and the statement fallback read per customer *)
+    ; purpose_of_payment : string option
+    (** sent as [PURPOSE_OF_PAYMENT] with payouts to external accounts, which some
+        corridors (USD to EUR among them) require; one of Grid's [PurposeOfPayment]
+        values *)
     }
 
   (** Polls every 3 s, waits up to 2 minutes for provisioning, tags the person's e-mail
       with the customer id ([local+<id>@domain]), US payees, no IP, no webhook key, 3
-      pages. *)
+      pages, [GOODS_OR_SERVICES]. *)
   val default : t
 
   (** [tagged_email id ~email] is [local+<id>@domain]; characters outside letters,

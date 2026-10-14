@@ -17,6 +17,7 @@ module Config = struct
     ; end_user_ip : string option
     ; webhook_public_key : Lc.P256.public_key option
     ; transactions_pages : int
+    ; purpose_of_payment : string option
     }
 
   (* [local+tag@domain]: Grid wants a deliverable address per customer, and test runs
@@ -41,6 +42,9 @@ module Config = struct
     ; end_user_ip = None
     ; webhook_public_key = None
     ; transactions_pages = 3
+    ; (* Corridors such as USD to EUR refuse a quote without one
+         (MISSING_MANDATORY_USER_INFO); a service passes the customer's own. *)
+      purpose_of_payment = Some "GOODS_OR_SERVICES"
     }
   ;;
 end
@@ -577,58 +581,106 @@ let us_bank_details t account =
   Account_map.us_bank_details a
 ;;
 
+(* A statement line per balance change, or per transaction where Grid has no balance
+   changes for the account (it answers 501 for some account types). *)
+type movement =
+  { at : Time_ns.t
+  ; amount : Money.Amount.t
+  ; reference : string
+  }
+
+let movements_from_changes (changes : Grid_api.Balance_change.t list) ~default =
+  List.map changes ~f:(fun c ->
+    let%map.Or_error amount = Grid_api.Amount.to_money c.amount in
+    { at = Grid_time.parse_or ~default (Some c.effective_at)
+    ; amount
+    ; reference = Option.value c.transaction_id ~default:c.id
+    })
+  |> Or_error.all
+;;
+
+(* Money that moved: completed transactions, and outgoing ones already debited. *)
+let movements_from_transactions
+  (txs : Grid_api.Transaction.t list)
+  ~account_id
+  ~default
+  =
+  List.filter_map txs ~f:(fun tx ->
+    let at =
+      Grid_time.parse_or ~default (Option.first_some tx.settled_at tx.updated_at)
+    in
+    let moved = List.mem [ "COMPLETED"; "PROCESSING" ] tx.status ~equal:String.equal in
+    if not moved
+    then None
+    else if Option.equal String.equal tx.source_account_id (Some account_id)
+    then
+      Some
+        (let%map.Or_error sent = Tx_map.money_of tx.sent ~what:"sentAmount" in
+         { at; amount = Money.Amount.neg sent; reference = tx.id })
+    else if Option.equal String.equal tx.destination_account_id (Some account_id)
+            && String.equal tx.status "COMPLETED"
+    then
+      Some
+        (let%map.Or_error received = Tx_map.money_of tx.received ~what:"receivedAmount" in
+         { at; amount = received; reference = tx.id })
+    else None)
+  |> Or_error.all
+;;
+
+let not_implemented (e : Lc.Api_error.t) =
+  match e with
+  | Http { status = 501; _ } -> true
+  | _ -> false
+;;
+
 let statement t account ~from ~until =
   match%bind find_grid_account t account with
   | Error _ as e -> return e
-  | Ok (_, a) ->
+  | Ok (customer_id, a) ->
     let stop = Time_ns.min until (now ()) in
-    let changes ~start ~stop =
-      if Time_ns.( >= ) start stop
-      then return (Ok [])
-      else lift (Grid_api.balance_changes t.api ~account_id:a.id ~start ~stop)
+    let%bind.Deferred.Or_error movements =
+      match%bind Grid_api.balance_changes t.api ~account_id:a.id ~start:from ~stop:(now ()) with
+      | Ok changes -> return (movements_from_changes changes ~default:from)
+      | Error e when not_implemented e ->
+        let%bind.Deferred.Or_error txs =
+          lift
+            (Grid_api.transactions
+               t.api
+               ~customer_id
+               ~max_pages:t.config.transactions_pages)
+        in
+        return
+          (Or_error.map
+             (movements_from_transactions txs ~account_id:a.id ~default:from)
+             ~f:(List.filter ~f:(fun m -> Time_ns.( >= ) m.at from)))
+      | Error e -> return (Error (Lc.Api_error.to_error e))
     in
-    let%bind.Deferred.Or_error within = changes ~start:from ~stop in
-    let%bind.Deferred.Or_error after = changes ~start:stop ~stop:(now ()) in
     return
       (let open Or_error.Let_syntax in
        let%bind balance = Account_map.balance account a ~at:(now ()) in
        let currency = Money.Amount.currency balance.posted in
-       let amounts l =
-         List.map l ~f:(fun (c : Grid_api.Balance_change.t) ->
-           Grid_api.Amount.to_money c.amount)
-         |> Or_error.all
+       let within, after = List.partition_tf movements ~f:(fun m -> Time_ns.( < ) m.at stop) in
+       let%bind after_sum = Money.Amount.sum currency (List.map after ~f:(fun m -> m.amount)) in
+       let%bind within_sum =
+         Money.Amount.sum currency (List.map within ~f:(fun m -> m.amount))
        in
-       let%bind within_amounts = amounts within in
-       let%bind after_amounts = amounts after in
-       let%bind after_sum = Money.Amount.sum currency after_amounts in
-       let%bind within_sum = Money.Amount.sum currency within_amounts in
-       (* Balance changes add up to the posted balance: walk back from today. *)
+       (* The movements add up to the posted balance: walk back from now. *)
        let%bind closing = Money.Amount.sub balance.posted after_sum in
        let%bind opening = Money.Amount.sub closing within_sum in
-       let%bind lines, (_ : Money.Amount.t) =
-         List.zip_exn within within_amounts
-         |> List.sort ~compare:(fun ((a : Grid_api.Balance_change.t), _) (b, _) ->
-           String.compare a.effective_at b.effective_at)
-         |> List.fold_result ~init:([], opening) ~f:(fun (acc, running) (c, amount) ->
-           let%map balance = Money.Amount.add running amount in
-           ( { Statement.Line.at = Grid_time.parse_or ~default:from (Some c.effective_at)
-             ; amount
-             ; code = (if Money.Amount.is_negative amount then "DEBIT" else "CREDIT")
-             ; reference = Option.value c.transaction_id ~default:c.id
+       let%map lines, (_ : Money.Amount.t) =
+         List.sort within ~compare:(fun x y -> Time_ns.compare x.at y.at)
+         |> List.fold_result ~init:([], opening) ~f:(fun (acc, running) m ->
+           let%map balance = Money.Amount.add running m.amount in
+           ( { Statement.Line.at = m.at
+             ; amount = m.amount
+             ; code = (if Money.Amount.is_negative m.amount then "DEBIT" else "CREDIT")
+             ; reference = m.reference
              ; balance
              }
              :: acc
            , balance ))
        in
-       Ok
-         { Statement.account
-         ; currency
-         ; from
-         ; until
-         ; opening
-         ; lines = List.rev lines
-         ; closing
-         })
+       { Statement.account; currency; from; until; opening; lines = List.rev lines; closing })
 ;;
 
 (* {2 SCA} *)
@@ -839,9 +891,9 @@ let start_transfer t ~customer_id ~account_id (draft : Transfer.t) =
   let%bind payee =
     Deferred.return (Payee.of_transfer draft ~payee_country:t.config.payee_country)
   in
-  let%bind destination_id, payment_rail =
+  let%bind destination_id, payment_rail, sender_info =
     match payee with
-    | Internal { account_id } -> return (account_id, None)
+    | Internal { account_id } -> return (account_id, None, [])
     | External { currency; account_info; payment_rail; platform_account_id } ->
       let%map e =
         external_account t ~customer_id ~currency ~account_info ~platform_account_id
@@ -849,7 +901,10 @@ let start_transfer t ~customer_id ~account_id (draft : Transfer.t) =
       (match draft.counterparty with
        | Beneficiary b -> payee_check_event t b e
        | External _ -> ());
-      e.id, payment_rail
+      ( e.id
+      , payment_rail
+      , Option.to_list
+          (Option.map t.config.purpose_of_payment ~f:(fun p -> "PURPOSE_OF_PAYMENT", p)) )
   in
   let%bind amount = Deferred.return (Units.to_grid draft.amount) in
   let%bind q =
@@ -861,6 +916,7 @@ let start_transfer t ~customer_id ~account_id (draft : Transfer.t) =
          ~locked:`Receiving
          ~amount
          ~description:(String.prefix draft.reference 1024)
+         ~sender_info
          ~idempotency_key:(Transfer.Id.to_string draft.id))
   in
   let%bind fee =
