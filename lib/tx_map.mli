@@ -16,6 +16,7 @@
       FAILED  ACCOUNT_CANNOT_RECEIVE           Rejected AC06
       FAILED  COMPLIANCE_REJECTED              Rejected RR04
       FAILED  LIMIT_EXCEEDED                   Rejected AM02
+      FAILED  COUNTERPARTY_POST_TX_FAILED      Rejected MS03
       REJECTED                                 Rejected MS03 (or the reason above)
       FAILED  SCA_NOT_COMPLETED                Failed Sca_failed
       FAILED  QUOTE_EXPIRED, EXPIRED           Failed Expired

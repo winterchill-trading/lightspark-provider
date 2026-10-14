@@ -88,6 +88,7 @@ let%expect_test "outgoing statuses and failure reasons" =
     ; "FAILED", Some "LIMIT_EXCEEDED"
     ; "FAILED", Some "SCA_NOT_COMPLETED"
     ; "FAILED", Some "QUOTE_EXPIRED"
+    ; "FAILED", Some "COUNTERPARTY_POST_TX_FAILED"
     ; "FAILED", Some "QUOTE_EXECUTION_FAILED"
     ; "FAILED", None
     ; "REJECTED", None
@@ -114,6 +115,7 @@ let%expect_test "outgoing statuses and failure reasons" =
     (FAILED (failure_reason (LIMIT_EXCEEDED)) ((Rejected AM02)))
     (FAILED (failure_reason (SCA_NOT_COMPLETED)) ((Failed Sca_failed)))
     (FAILED (failure_reason (QUOTE_EXPIRED)) ((Failed Expired)))
+    (FAILED (failure_reason (COUNTERPARTY_POST_TX_FAILED)) ((Rejected MS03)))
     (FAILED (failure_reason (QUOTE_EXECUTION_FAILED))
      ((Failed (Provider_error QUOTE_EXECUTION_FAILED))))
     (FAILED (failure_reason ())

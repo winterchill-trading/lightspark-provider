@@ -12,6 +12,8 @@ let rejection_reason (tx : Grid_api.Transaction.t) : Iso_reason.t option =
   | Some "ACCOUNT_CANNOT_RECEIVE" -> Some AC06
   | Some "COMPLIANCE_REJECTED" -> Some RR04
   | Some "LIMIT_EXCEEDED" -> Some AM02
+  (* The payout partner refused without a finer reason; the money comes back. *)
+  | Some "COUNTERPARTY_POST_TX_FAILED" -> Some MS03
   | _ -> None
 ;;
 
