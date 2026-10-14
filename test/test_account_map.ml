@@ -33,6 +33,15 @@ let%expect_test "a customer's internal accounts as provider accounts" =
         (memo ()))
        (Crypto
         (address ((network Tron) (address TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t)))
+        (memo ()))
+       (Crypto
+        (address
+         ((network Arbitrum)
+          (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
+        (memo ()))
+       (Crypto
+        (address
+         ((network Plasma) (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
         (memo ())))))
     ((type_ INTERNAL_CRYPTO) (currency USDC) (status Open)
      (addresses
@@ -42,14 +51,26 @@ let%expect_test "a customer's internal accounts as provider accounts" =
         (memo ()))
        (Crypto
         (address
+         ((network Base) (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
+        (memo ()))
+       (Crypto
+        (address
          ((network Ethereum)
           (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
         (memo ()))
        (Crypto
         (address
          ((network Polygon) (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
+        (memo ()))
+       (Crypto
+        (address
+         ((network Arbitrum)
+          (address 0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed)))
         (memo ())))))
-    ((type_ INTERNAL_FIAT) (currency USD) (status Open) (addresses ()))
+    ((type_ INTERNAL_FIAT) (currency USD) (status Open)
+     (addresses
+      ((Us_account
+        ((routing 000000000) (account_number 000000001) (account_type Checking))))))
     ((type_ EMBEDDED_WALLET) (currency USDB) (status Open) (addresses ()))
     |}];
   return ()
@@ -66,17 +87,18 @@ let%expect_test "balances and US bank details" =
           ""
             ~available:(b.available : Money.Amount.t)
             ~held:(b.held : Money.Amount.t)
-            ~us_bank:(Account_map.us_bank_details a : Account_map.Us_bank.t option)]);
+            ~us:
+              (Option.is_some
+                 (List.find_map (Account_map.addresses a.funding) ~f:(function
+                   | Account.Address.Us_account u -> Some u
+                   | _ -> None))
+               : bool)]);
   [%expect
     {|
-    ((available "0.000000 USDT") (held "0.000000 USDT") (us_bank ()))
-    ((available "0.000000 USDC") (held "0.000000 USDC") (us_bank ()))
-    ((available "100.00 USD") (held "0.00 USD")
-     (us_bank
-      (((routing_number 000000000) (account_number 000000001)
-        (bank_name ("Example Bank")) (reference (REF-EXAMPLE))
-        (rails (ACH WIRE RTP FEDNOW))))))
-    ((available "0.000000 USDB") (held "0.000000 USDB") (us_bank ()))
+    ((available "0.000000 USDT") (held "0.000000 USDT") (us false))
+    ((available "0.000000 USDC") (held "0.000000 USDC") (us false))
+    ((available "100.00 USD") (held "0.00 USD") (us true))
+    ((available "0.000000 USDB") (held "0.000000 USDB") (us false))
     |}];
   return ()
 ;;

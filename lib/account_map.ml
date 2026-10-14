@@ -18,6 +18,10 @@ let network_of_wallet = function
   | "POLYGON_WALLET" -> Some Polygon
   | "SOLANA_WALLET" -> Some Solana
   | "TRON_WALLET" -> Some Tron
+  | "BASE_WALLET" -> Some Base
+  | "ARBITRUM_WALLET" -> Some Arbitrum
+  | "PLASMA_WALLET" -> Some Plasma
+  | "SPARK_WALLET" -> Some Spark
   | _ -> None
 ;;
 
@@ -30,6 +34,19 @@ let addresses (instructions : Grid_api.Funding_instruction.t list) =
          let bic = Option.bind i.swift_code ~f:(fun b -> Result.ok (Bic.of_string b)) in
          Some (Account.Address.Iban { iban; bic })
        | Error _ -> None)
+    | "USD_ACCOUNT", _, _ ->
+      (* Grid's USD accounts are checking accounts at its partner bank. *)
+      (match i.routing_number, i.account_number with
+       | Some routing, Some account_number ->
+         (match Aba.of_string routing with
+          (* The sandbox hands out random routing numbers; about nine in ten fail the ABA
+             check digit (measured 2026-10-14) and cannot be represented. *)
+          | Error _ -> None
+          | Ok routing ->
+            Us_account.create ~routing ~account_number ()
+            |> Result.ok
+            |> Option.map ~f:(fun a -> Account.Address.Us_account a))
+       | _ -> None)
     | wallet, _, Some address ->
       Option.bind (network_of_wallet wallet) ~f:(fun network ->
         match Crypto_address.create network address with
@@ -61,29 +78,4 @@ let balance account (a : Grid_api.Internal_account.t) ~at =
   ; posted = available
   ; as_of = at
   }
-;;
-
-module Us_bank = struct
-  type t =
-    { routing_number : string
-    ; account_number : string
-    ; bank_name : string option
-    ; reference : string option
-    ; rails : string list
-    }
-  [@@deriving sexp_of]
-end
-
-let us_bank_details (a : Grid_api.Internal_account.t) =
-  List.find_map a.funding ~f:(fun i ->
-    match i.account_type, i.routing_number, i.account_number with
-    | "USD_ACCOUNT", Some routing_number, Some account_number ->
-      Some
-        { Us_bank.routing_number
-        ; account_number
-        ; bank_name = i.bank_name
-        ; reference = i.reference
-        ; rails = i.payment_rails
-        }
-    | _ -> None)
 ;;

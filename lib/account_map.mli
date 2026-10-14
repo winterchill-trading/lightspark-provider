@@ -7,11 +7,12 @@
     {v
       Grid funding instruction                       Account.Address
       EUR_ACCOUNT (iban)                             Iban
-      ETHEREUM_WALLET, POLYGON_WALLET,
-        SOLANA_WALLET, TRON_WALLET (address)         Crypto on that network
-      USD_ACCOUNT (routing + account number)         none: see us_bank_details
-      SWIFT_ACCOUNT, BASE/ARBITRUM/PLASMA/SPARK
-        wallets                                      none: no payments-core type
+      ETHEREUM, POLYGON, SOLANA, TRON, BASE,
+        ARBITRUM, PLASMA, SPARK _WALLET (address)    Crypto on that network
+      USD_ACCOUNT (routing + account number)         Us_account (checking), when the
+                                                       routing number passes the ABA
+                                                       check digit
+      SWIFT_ACCOUNT                                  none: no payments-core type
     v}
 
     Balances: Grid's [balance] is what can be spent; [available = posted = balance] and
@@ -36,18 +37,3 @@ val balance
   -> Grid_api.Internal_account.t
   -> at:Time_ns.t
   -> Account.Balance.t Or_error.t
-
-(** US bank details of a USD account (ABA routing and account number), which
-    {!Banking_provider.Account.Address.t} cannot carry yet. *)
-module Us_bank : sig
-  type t =
-    { routing_number : string
-    ; account_number : string
-    ; bank_name : string option
-    ; reference : string option (** the memo a depositor must include *)
-    ; rails : string list (** [ACH], [WIRE], [RTP], [FEDNOW] *)
-    }
-  [@@deriving sexp_of]
-end
-
-val us_bank_details : Grid_api.Internal_account.t -> Us_bank.t option
