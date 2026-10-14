@@ -27,6 +27,8 @@ jobs:
         run: |
           set -o pipefail
           opam exec -- dune build @doc --display short 2>&1 | tee doc.log
-          if grep -q "Warning" doc.log; then exit 1; fi
+          # Only this repo's files: a sibling's unresolved reference shows up when one of
+          # its signatures is included here, and is that repo's to fix.
+          if grep -A1 -E '^File "(lib|bin|examples)/' doc.log | grep -q "Warning"; then exit 1; fi
   obj-magic:
     uses: winterchill-trading/infra/.github/workflows/obj-magic.yml@main
