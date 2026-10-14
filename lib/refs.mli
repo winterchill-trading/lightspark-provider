@@ -1,9 +1,9 @@
 (** Provider-side references built from Grid ids.
 
-    A Grid customer is [Customer:<uuid>] and is used as the {!Banking_provider.Customer_ref.t}
-    as is. Grid has no endpoint that reads one internal account by id (only lists per
-    customer), so an account reference carries its owner: [<customer id>/<internal
-    account id>]. Grid ids never contain [/]. *)
+    A Grid customer is [Customer:<uuid>] and is used as the
+    {!Banking_provider.Customer_ref.t} as is. Grid has no endpoint that reads one internal
+    account by id (only lists per customer), so an account reference carries its owner:
+    [<customer id>/<internal account id>]. Grid ids never contain [/]. *)
 
 open! Core
 open Banking_provider

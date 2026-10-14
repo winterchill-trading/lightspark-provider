@@ -1,6 +1,6 @@
 (* Onboard a customer on the Grid sandbox, open its USD account, credit it through the
-   sandbox and print the balance. Needs LIGHTSPARK_CLIENT_ID and
-   LIGHTSPARK_CLIENT_SECRET for a sandbox platform; creates sandbox data. *)
+   sandbox and print the balance. Needs LIGHTSPARK_CLIENT_ID and LIGHTSPARK_CLIENT_SECRET
+   for a sandbox platform; creates sandbox data. *)
 
 open! Core
 open! Async
@@ -51,5 +51,7 @@ let main () =
 
 let () =
   Command_unix.run
-    (Command.async_or_error ~summary:"Grid sandbox quick start" (Command.Param.return main))
+    (Command.async_or_error
+       ~summary:"Grid sandbox quick start"
+       (Command.Param.return main))
 ;;

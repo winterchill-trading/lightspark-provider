@@ -31,7 +31,8 @@ let outgoing_update (tx : Grid_api.Transaction.t) : Transfer_update.t option =
     (match rejection_reason tx with
      | Some r -> Some (Rejected r)
      | None ->
-       Some (Failed (Provider_error (Option.value reason ~default:"failed without a reason"))))
+       Some
+         (Failed (Provider_error (Option.value reason ~default:"failed without a reason"))))
   | _ -> None
 ;;
 

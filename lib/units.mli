@@ -1,23 +1,23 @@
 (** Grid currencies and amounts in {!Money} terms.
 
     Grid sends every amount as an integer in the currency's smallest unit together with
-    the currency's code and number of decimals ([{"amount": 1000, "currency": {"code":
-    "USD", "decimals": 2}}]). {!Money} keeps its own registry of exponents; when the two
-    disagree the amount is rescaled here, exactly, and a conversion that would drop
-    digits fails instead of rounding.
+    the currency's code and number of decimals
+    ([{"amount": 1000, "currency": {"code": "USD", "decimals": 2}}]). {!Money} keeps its
+    own registry of exponents; when the two disagree the amount is rescaled here, exactly,
+    and a conversion that would drop digits fails instead of rounding.
 
     Stablecoins map to the untagged {!Money.Currency.usdc} and {!Money.Currency.usdt}:
-    Grid holds them in custody and deposits arrive on several chains. [USDB] (the
-    embedded wallet's dollar token) and any payout currency {!Money} does not know yet
-    are registered on first use with Grid's decimals. *)
+    Grid holds them in custody and deposits arrive on several chains. [USDB] (the embedded
+    wallet's dollar token) and any payout currency {!Money} does not know yet are
+    registered on first use with Grid's decimals. *)
 
 open! Core
 
 (** The {!Money.Currency.t} for a Grid currency code and its decimals. *)
 val currency : code:string -> decimals:int -> Money.Currency.t Or_error.t
 
-(** Grid's code for a currency: the {!Money} code without a network tag ([USDC@polygon]
-    is [USDC]). *)
+(** Grid's code for a currency: the {!Money} code without a network tag ([USDC@polygon] is
+    [USDC]). *)
 val code : Money.Currency.t -> string
 
 (** [amount ~code ~decimals 1050] is 10.50 USD for [code = "USD"], [decimals = 2]. *)

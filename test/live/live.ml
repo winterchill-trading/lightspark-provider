@@ -6,7 +6,6 @@ module Suite = Conformance.Make (Adapter) (Adapter)
 
 let person = Live_person.person
 let email_for = Live_person.email_for
-
 let suite_config ~run_id = { (Conformance.Config.default ~run_id) with person }
 
 let adapter ~(suite : Conformance.Config.t) =

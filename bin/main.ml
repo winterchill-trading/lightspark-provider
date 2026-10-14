@@ -36,7 +36,10 @@ let fee_command =
     (let%map_open.Command account =
        flag "-account" (required string) ~doc:"REF account (<customer id>/<account id>)"
      and amount =
-       flag "-amount" (required string) ~doc:"AMOUNT what the payee receives, e.g. '30.00 EUR'"
+       flag
+         "-amount"
+         (required string)
+         ~doc:"AMOUNT what the payee receives, e.g. '30.00 EUR'"
      and instant = flag "-instant" no_arg ~doc:" SEPA Instant instead of SEPA" in
      fun () ->
        let t = adapter () in

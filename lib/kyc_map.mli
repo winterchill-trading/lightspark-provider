@@ -44,8 +44,8 @@ val transitions
   -> to_:Kyc_core.Status.t
   -> Kyc_core.Status.Transition.t list
 
-(** The events between two observations of one customer: each step that changed kind,
-    then the status transitions. Ids are derived from the change
+(** The events between two observations of one customer: each step that changed kind, then
+    the status transitions. Ids are derived from the change
     ([kyc:<customer>:step:<Step>:<State>], [kyc:<customer>:<From>:<Transition>]), so a
     poll and a webhook that see the same change produce the same event. *)
 val events

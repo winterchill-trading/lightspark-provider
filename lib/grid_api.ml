@@ -17,12 +17,7 @@ let create
   ?(log = fun sexp -> Log.Global.debug_s sexp)
   config
   =
-  { config
-  ; transport
-  ; policy
-  ; log
-  ; grid = Lc.Grid.create ~transport ~policy ~log config
-  }
+  { config; transport; policy; log; grid = Lc.Grid.create ~transport ~policy ~log config }
 ;;
 
 let config t = t.config
@@ -148,7 +143,8 @@ module Internal_account = struct
     ; status = str "status" json
     ; balance = Amount.of_json (member "balance" json)
     ; total_balance = amount_opt "totalBalance" json
-    ; funding = List.map (list "fundingPaymentInstructions" json) ~f:Funding_instruction.of_json
+    ; funding =
+        List.map (list "fundingPaymentInstructions" json) ~f:Funding_instruction.of_json
     ; created_at = str "createdAt" json
     }
   ;;
@@ -476,7 +472,10 @@ let paged t ~path ~what ~query of_json ?max_pages () =
       t
       ~path
       ~what
-      ~query:(query @ [ "limit", "100" ] @ Option.to_list (Option.map cursor ~f:(fun c -> "cursor", c)))
+      ~query:
+        (query
+         @ [ "limit", "100" ]
+         @ Option.to_list (Option.map cursor ~f:(fun c -> "cursor", c)))
       (fun json -> page_items of_json json, page_next json))
 ;;
 
@@ -674,11 +673,11 @@ let create_external_account
       ~path:"/customers/external-accounts"
       ~body:
         (`Assoc
-            [ "customerId", `String customer_id
-            ; "currency", `String currency
-            ; "platformAccountId", `String platform_account_id
-            ; "accountInfo", account_info
-            ])
+          [ "customerId", `String customer_id
+          ; "currency", `String currency
+          ; "platformAccountId", `String platform_account_id
+          ; "accountInfo", account_info
+          ])
       ~idempotency_key
       ~what:"external account"
       External_account.of_json)
@@ -775,9 +774,9 @@ let authorize_quote ?end_user_ip t ~id ~code =
     ~path:(sprintf "/quotes/%s/authorize" (path_id id))
     ~body:
       (`Assoc
-          (("code", `String code)
-           :: Option.to_list
-                (Option.map end_user_ip ~f:(fun ip -> "endUserIpAddress", `String ip))))
+        (("code", `String code)
+         :: Option.to_list
+              (Option.map end_user_ip ~f:(fun ip -> "endUserIpAddress", `String ip))))
     ~what:"quote authorization"
     Quote.of_json
 ;;
@@ -822,10 +821,6 @@ let rates ?sending_amount t ~source ~destination =
 ;;
 
 let send_test_webhook t =
-  request
-    t
-    ~meth:`POST
-    ~path:"/webhooks/test"
-    ~what:"test webhook"
-    (fun json -> Option.value (int_opt "response_status" json) ~default:0)
+  request t ~meth:`POST ~path:"/webhooks/test" ~what:"test webhook" (fun json ->
+    Option.value (int_opt "response_status" json) ~default:0)
 ;;

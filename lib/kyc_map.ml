@@ -56,8 +56,11 @@ let kyc_status customer ?previous (c : Grid_api.Customer.t) ~at =
        | _ -> state)
   in
   let with_steps =
-    List.fold observed ~init:(Customer.Kyc_status.initial customer) ~f:(fun acc (step, state) ->
-      Customer.Kyc_status.with_step acc step (keep step state))
+    List.fold
+      observed
+      ~init:(Customer.Kyc_status.initial customer)
+      ~f:(fun acc (step, state) ->
+        Customer.Kyc_status.with_step acc step (keep step state))
   in
   { with_steps with status = status c.kyc_status }
 ;;

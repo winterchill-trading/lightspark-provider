@@ -2,13 +2,13 @@
     Grid API ([lightspark-client]).
 
     {b Scope.} Customers and their KYC state, the accounts Grid opens for each customer
-    (USD and the stablecoins the platform supports), payouts from them to bank accounts
-    in other currencies (cross-border, with Grid's FX quote), to wallets and to Lightning,
-    conversions between a customer's own accounts as swaps, statements from Grid's
-    balance changes, and webhooks. Cards and standing orders are not offered: those calls
-    return an error. US domestic bank payouts (ACH, RTP, wire) need a rail and a
-    beneficiary format payments-core does not have yet; {!us_bank_details} exposes the
-    USD account's routing and account number for deposits.
+    (USD and the stablecoins the platform supports), payouts from them to bank accounts in
+    other currencies (cross-border, with Grid's FX quote), to wallets and to Lightning,
+    conversions between a customer's own accounts as swaps, statements from Grid's balance
+    changes, and webhooks. Cards and standing orders are not offered: those calls return
+    an error. US domestic bank payouts (ACH, RTP, wire) need a rail and a beneficiary
+    format payments-core does not have yet; {!us_bank_details} exposes the USD account's
+    routing and account number for deposits.
 
     {b Ids.} A customer is the Grid customer ([Customer:<uuid>]) and carries our id as
     [platformCustomerId], so [create_customer] looks it up before creating. An account is
@@ -21,14 +21,14 @@
     {e receiving} amount locked: the draft's amount is what the payee gets, and the fee
     and the debit are in the account's currency. Customers outside SCA regions get no
     challenge and the quote is executed at once; otherwise the quote waits in
-    [PENDING_AUTHORIZATION] and its challenge becomes a {!Banking_provider.Sca_challenge.t}
-    answered with {!confirm_sca}.
+    [PENDING_AUTHORIZATION] and its challenge becomes a
+    {!Banking_provider.Sca_challenge.t} answered with {!confirm_sca}.
 
     {b Events.} Grid posts webhooks to the URL configured in its dashboard, signed with
-    the platform's P-256 key; a service passes each delivery to {!ingest_webhook}.
-    Without a public URL the adapter polls instead: while anything is subscribed to
-    {!events} it reads, every [poll_interval], the KYC state and the latest transactions
-    of every customer it has seen. Both paths derive the same event ids from Grid's data
+    the platform's P-256 key; a service passes each delivery to {!ingest_webhook}. Without
+    a public URL the adapter polls instead: while anything is subscribed to {!events} it
+    reads, every [poll_interval], the KYC state and the latest transactions of every
+    customer it has seen. Both paths derive the same event ids from Grid's data
     ({!Kyc_map}, {!Tx_map}), so an inbox applies each change once whichever path saw it
     first.
 
@@ -45,8 +45,8 @@ module Config : sig
   type t =
     { poll_interval : Time_ns.Span.t
     ; provisioning_timeout : Time_ns.Span.t
-    (** how long [open_account] waits for Grid to open the account and
-        [simulate_deposit] waits for the credit's transaction *)
+    (** how long [open_account] waits for Grid to open the account and [simulate_deposit]
+        waits for the credit's transaction *)
     ; email_for : Kyc_core.Customer_id.t -> email:string -> string
     (** the e-mail registered at Grid, which must be deliverable and is best unique per
         customer *)
@@ -59,8 +59,7 @@ module Config : sig
     (** pages of 100 the poller and the statement fallback read per customer *)
     ; purpose_of_payment : string option
     (** sent as [PURPOSE_OF_PAYMENT] with payouts to external accounts, which some
-        corridors (USD to EUR among them) require; one of Grid's [PurposeOfPayment]
-        values *)
+        corridors (USD to EUR among them) require; one of Grid's [PurposeOfPayment] values *)
     }
 
   (** Polls every 3 s, waits up to 2 minutes for provisioning, tags the person's e-mail
@@ -68,8 +67,8 @@ module Config : sig
       pages, [GOODS_OR_SERVICES]. *)
   val default : t
 
-  (** [tagged_email id ~email] is [local+<id>@domain]; characters outside letters,
-      digits and [-] are dropped from the tag. *)
+  (** [tagged_email id ~email] is [local+<id>@domain]; characters outside letters, digits
+      and [-] are dropped from the tag. *)
   val tagged_email : Kyc_core.Customer_id.t -> email:string -> string
 end
 
@@ -92,8 +91,8 @@ include Sandbox.S with type t := t
 
 (** {2 Grid-specific} *)
 
-(** The US bank details (ABA routing and account number, the memo reference) to fund a
-    USD account by ACH or wire; [None] for other accounts. *)
+(** The US bank details (ABA routing and account number, the memo reference) to fund a USD
+    account by ACH or wire; [None] for other accounts. *)
 val us_bank_details
   :  t
   -> Account_ref.t

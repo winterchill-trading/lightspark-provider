@@ -1,7 +1,7 @@
 (** Grid transactions as transfer updates and deposits.
 
-    Grid reports every movement as a transaction with a [type] ([INCOMING], [OUTGOING]),
-    a [status] and, once failed, a [failureReason]. The adapter publishes one event per
+    Grid reports every movement as a transaction with a [type] ([INCOMING], [OUTGOING]), a
+    [status] and, once failed, a [failureReason]. The adapter publishes one event per
     transaction and status, with the id [tx:<transaction id>:<STATUS>], so the poller and
     a webhook delivery that see the same change publish the same event.
 

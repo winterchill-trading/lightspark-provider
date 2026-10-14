@@ -1,6 +1,6 @@
-(* A USD walk through the adapter on the Grid sandbox: what the conformance suite (EUR
-   and IBAN based) cannot reach. Prints statuses and amounts, never ids or personal
-   data. Runs only with LIGHTSPARK_LIVE_TESTS=1 and LIGHTSPARK_LIVE_WALK=1. *)
+(* A USD walk through the adapter on the Grid sandbox: what the conformance suite (EUR and
+   IBAN based) cannot reach. Prints statuses and amounts, never ids or personal data. Runs
+   only with LIGHTSPARK_LIVE_TESTS=1 and LIGHTSPARK_LIVE_WALK=1. *)
 
 open! Core
 open! Async
@@ -59,7 +59,8 @@ let walk () =
   Core.printf
     "   US bank details: %s\n"
     (match bank with
-     | Some b -> sprintf "routing and account number, rails %s" (String.concat ~sep:"," b.rails)
+     | Some b ->
+       sprintf "routing and account number, rails %s" (String.concat ~sep:"," b.rails)
      | None -> "none");
   step "deposit 100.00 USD";
   let hundred = Money.Amount.of_decimal_string Money.Currency.usd "100.00" |> ok_exn in
@@ -67,7 +68,10 @@ let walk () =
     Adapter.simulate_deposit adapter ~account:usd.id ~rail:Intraledger hundred >>| ok_exn
   in
   let%bind seen =
-    await_event events ~what:"Incoming_transfer" ~timeout:(Time_ns.Span.of_sec 30.)
+    await_event
+      events
+      ~what:"Incoming_transfer"
+      ~timeout:(Time_ns.Span.of_sec 30.)
       (fun (e : Event.t) ->
          match e.kind with
          | Incoming_transfer { transfer; amount; settled; rail; _ }
@@ -109,7 +113,11 @@ let walk () =
       |> ok_exn
     in
     let party name =
-      { Iso20022.Party.name; iban = Iban.of_string iban |> ok_exn; bic = None; address = None }
+      { Iso20022.Party.name
+      ; iban = Iban.of_string iban |> ok_exn
+      ; bic = None
+      ; address = None
+      }
     in
     Transfer.draft
       ~id:(Transfer.Id.of_string id)
@@ -143,10 +151,14 @@ let walk () =
         (Sexp.to_string [%sexp (info.status : Transfer.Status.t)])
         (Money.Amount.to_string info.fee);
       let%bind (_ : unit option) =
-        await_event events ~what:"a final status" ~timeout:(Time_ns.Span.of_min 2.)
+        await_event
+          events
+          ~what:"a final status"
+          ~timeout:(Time_ns.Span.of_min 2.)
           (fun (e : Event.t) ->
              match e.kind with
-             | Transfer { transfer; update; _ } when Transfer.Id.equal transfer draft.id ->
+             | Transfer { transfer; update; _ } when Transfer.Id.equal transfer draft.id
+               ->
                Core.printf
                  "   event %s\n%!"
                  (Sexp.to_string [%sexp (update : Transfer_update.t)]);
@@ -167,12 +179,18 @@ let walk () =
         (Money.Amount.to_string b.available)
         (Money.Amount.to_string b.posted)
   in
-  let%bind () = send ~from:usd.id (sepa_draft ~id:(run_id ^ "-sepa") ~iban:"DE89370400440532013000") in
+  let%bind () =
+    send ~from:usd.id (sepa_draft ~id:(run_id ^ "-sepa") ~iban:"DE89370400440532013000")
+  in
   (* Grid's sandbox fails a payout to an account number ending in 011 as ACCOUNT_INVALID. *)
   step "payout to an account the sandbox reports invalid";
-  let%bind () = send ~from:usd.id (sepa_draft ~id:(run_id ^ "-bad") ~iban:"DE83370400440532013011") in
+  let%bind () =
+    send ~from:usd.id (sepa_draft ~id:(run_id ^ "-bad") ~iban:"DE83370400440532013011")
+  in
   step "conversion 10.00 USD to USDC";
-  let%bind usdc = Adapter.open_account adapter customer.id Money.Currency.usdc >>| ok_exn in
+  let%bind usdc =
+    Adapter.open_account adapter customer.id Money.Currency.usdc >>| ok_exn
+  in
   let ten = Money.Amount.of_decimal_string Money.Currency.usd "10.00" |> ok_exn in
   let%bind () =
     match%bind Adapter.quote_swap adapter ~from:usd.id ~to_:usdc.id ~sell:ten with
@@ -192,7 +210,10 @@ let walk () =
          | Done () -> "done"
          | Challenge _ -> "challenge");
       let%map (_ : unit option) =
-        await_event events ~what:"swap result" ~timeout:(Time_ns.Span.of_min 1.)
+        await_event
+          events
+          ~what:"swap result"
+          ~timeout:(Time_ns.Span.of_min 1.)
           (fun (e : Event.t) ->
              match e.kind with
              | Swap_executed { swap; buy; _ } when Swap.Id.equal swap q.id ->
@@ -296,5 +317,7 @@ let () =
     Core.print_endline
       "lightspark-provider walk skipped (set LIGHTSPARK_LIVE_TESTS=1 and \
        LIGHTSPARK_LIVE_WALK=1)"
-  else Command_unix.run (Command.async ~summary:"USD walk on the Grid sandbox" (Command.Param.return walk))
+  else
+    Command_unix.run
+      (Command.async ~summary:"USD walk on the Grid sandbox" (Command.Param.return walk))
 ;;

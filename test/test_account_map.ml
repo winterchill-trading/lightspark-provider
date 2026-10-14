@@ -22,7 +22,8 @@ let%expect_test "a customer's internal accounts as provider accounts" =
             ~currency:(acc.currency : Money.Currency.t)
             ~status:(acc.status : Ledger.Account_status.t)
             ~addresses:(acc.addresses : Account.Address.t list)]);
-  [%expect {|
+  [%expect
+    {|
     ((type_ INTERNAL_CRYPTO) (currency USDT) (status Open)
      (addresses
       ((Crypto
@@ -66,7 +67,8 @@ let%expect_test "balances and US bank details" =
             ~available:(b.available : Money.Amount.t)
             ~held:(b.held : Money.Amount.t)
             ~us_bank:(Account_map.us_bank_details a : Account_map.Us_bank.t option)]);
-  [%expect {|
+  [%expect
+    {|
     ((available "0.000000 USDT") (held "0.000000 USDT") (us_bank ()))
     ((available "0.000000 USDC") (held "0.000000 USDC") (us_bank ()))
     ((available "100.00 USD") (held "0.00 USD")
@@ -80,9 +82,11 @@ let%expect_test "balances and US bank details" =
 ;;
 
 let%expect_test "account statuses" =
-  List.iter [ "ACTIVE"; "PENDING"; "FROZEN"; "CLOSED"; "FAILED"; "NEW_VALUE" ] ~f:(fun s ->
-    print_s [%message s ~_:(Account_map.status s : Ledger.Account_status.t)]);
-  [%expect {|
+  List.iter
+    [ "ACTIVE"; "PENDING"; "FROZEN"; "CLOSED"; "FAILED"; "NEW_VALUE" ]
+    ~f:(fun s -> print_s [%message s ~_:(Account_map.status s : Ledger.Account_status.t)]);
+  [%expect
+    {|
     (ACTIVE Open)
     (PENDING Open)
     (FROZEN Frozen)
@@ -97,8 +101,10 @@ let%expect_test "account references carry the customer" =
   let r = Refs.account ~customer_id:"Customer:c" ~account_id:"InternalAccount:a" in
   print_s [%sexp (Refs.account_parts r : (string * string) Or_error.t)];
   print_s
-    [%sexp (Refs.account_parts (Account_ref.of_string "nope") : (string * string) Or_error.t)];
-  [%expect {|
+    [%sexp
+      (Refs.account_parts (Account_ref.of_string "nope") : (string * string) Or_error.t)];
+  [%expect
+    {|
     (Ok (Customer:c InternalAccount:a))
     (Error ("not a Grid account reference" nope))
     |}];

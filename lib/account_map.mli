@@ -16,8 +16,8 @@
 
     Balances: Grid's [balance] is what can be spent; [available = posted = balance] and
     [held] is zero. Grid documents [totalBalance] as the balance including pending and
-    held funds, but on the sandbox it stayed at the deposited total after settled
-    payouts and conversions, so it is not used. *)
+    held funds, but on the sandbox it stayed at the deposited total after settled payouts
+    and conversions, so it is not used. *)
 
 open! Core
 open Banking_provider
@@ -29,11 +29,7 @@ val currency : Grid_api.Internal_account.t -> Money.Currency.t Or_error.t
 val status : string -> Ledger.Account_status.t
 
 val addresses : Grid_api.Funding_instruction.t list -> Account.Address.t list
-
-val account
-  :  customer_id:string
-  -> Grid_api.Internal_account.t
-  -> Account.t Or_error.t
+val account : customer_id:string -> Grid_api.Internal_account.t -> Account.t Or_error.t
 
 val balance
   :  Account_ref.t

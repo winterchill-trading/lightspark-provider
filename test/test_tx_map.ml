@@ -21,7 +21,8 @@ let%expect_test "a recorded customer history: conversion, payout, deposit" =
           ~outgoing:(Tx_map.outgoing_update tx : Transfer_update.t option)
           ~rail:(Tx_map.rail tx : Payments_core.Rail.t)
           ~fee:(Tx_map.fee tx : Money.Amount.t Or_error.t)]);
-  [%expect {|
+  [%expect
+    {|
     ((type_ INCOMING) (status COMPLETED)
      (event_id tx:Transaction:00000000-0000-0000-0000-000000000001:COMPLETED)
      (outgoing (Settled)) (rail Intraledger) (fee (Ok "0.00 USD")))
@@ -41,9 +42,12 @@ let%expect_test "incoming transactions become a deposit and its settlement" =
   List.iter (transactions ()) ~f:(fun tx ->
     if String.equal tx.type_ "INCOMING"
     then
-      List.iter (Tx_map.incoming ~account tx |> ok_exn) ~f:(fun (e : Event.t) ->
-        print_s [%sexp (e.id : Event_id.t), (e.kind : Event.Kind.t)]));
-  [%expect {|
+      List.iter
+        (Tx_map.incoming ~account tx |> ok_exn)
+        ~f:(fun (e : Event.t) ->
+          print_s [%sexp (e.id : Event_id.t), (e.kind : Event.Kind.t)]));
+  [%expect
+    {|
     (tx:Transaction:00000000-0000-0000-0000-000000000001:in
      (Incoming_transfer (account Customer:c/InternalAccount:a)
       (transfer in:Transaction:00000000-0000-0000-0000-000000000001)
@@ -102,7 +106,8 @@ let%expect_test "outgoing statuses and failure reasons" =
           status
             (failure_reason : string option)
             ~_:(Tx_map.outgoing_update tx : Transfer_update.t option)]);
-  [%expect {|
+  [%expect
+    {|
     (CREATED (failure_reason ()) (Submitted))
     (PENDING (failure_reason ()) (Submitted))
     (PENDING_AUTHORIZATION (failure_reason ()) ())
@@ -138,14 +143,17 @@ let%expect_test "an incoming transaction that failed after settling is a return"
     ; { tx with status = "FAILED"; settled_at = None }
     ]
     ~f:(fun tx ->
-      List.iter (Tx_map.incoming ~account tx |> ok_exn) ~f:(fun (e : Event.t) ->
-        match e.kind with
-        | Incoming_transfer { settled; _ } ->
-          print_s [%message (e.id : Event_id.t) "deposit" (settled : bool)]
-        | Transfer { update; _ } ->
-          print_s [%message (e.id : Event_id.t) (update : Transfer_update.t)]
-        | _ -> ()));
-  [%expect {|
+      List.iter
+        (Tx_map.incoming ~account tx |> ok_exn)
+        ~f:(fun (e : Event.t) ->
+          match e.kind with
+          | Incoming_transfer { settled; _ } ->
+            print_s [%message (e.id : Event_id.t) "deposit" (settled : bool)]
+          | Transfer { update; _ } ->
+            print_s [%message (e.id : Event_id.t) (update : Transfer_update.t)]
+          | _ -> ()));
+  [%expect
+    {|
     ((e.id tx:Transaction:00000000-0000-0000-0000-000000000001:in) deposit
      (settled false))
     ((e.id tx:Transaction:00000000-0000-0000-0000-000000000001:FAILED)

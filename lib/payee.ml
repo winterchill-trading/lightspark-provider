@@ -87,7 +87,8 @@ let of_transfer (tr : Transfer.t) ~payee_country =
          match target with
          | Invoice i -> Ok ("invoice", i.raw)
          | Address { user; domain } -> Ok ("lightningAddress", user ^ "@" ^ domain)
-         | Lnurl _ -> Or_error.error_string "Grid pays Lightning invoices and addresses, not LNURL"
+         | Lnurl _ ->
+           Or_error.error_string "Grid pays Lightning invoices and addresses, not LNURL"
        in
        Or_error.map field ~f:(fun (k, v) ->
          External

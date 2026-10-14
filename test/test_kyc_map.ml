@@ -17,9 +17,16 @@ let customer ?email ?phone kyc : Grid_api.Customer.t =
 
 let%expect_test "Grid KYC statuses" =
   List.iter
-    [ None; Some "UNVERIFIED"; Some "PENDING"; Some "APPROVED"; Some "REJECTED"; Some "HOLD" ]
+    [ None
+    ; Some "UNVERIFIED"
+    ; Some "PENDING"
+    ; Some "APPROVED"
+    ; Some "REJECTED"
+    ; Some "HOLD"
+    ]
     ~f:(fun s ->
-      print_s [%message (s : string option) ~status:(Kyc_map.status s : Kyc_core.Status.t)]);
+      print_s
+        [%message (s : string option) ~status:(Kyc_map.status s : Kyc_core.Status.t)]);
   [%expect
     {|
     ((s ()) (status Created))
@@ -44,8 +51,11 @@ let%expect_test "an approval seen for the first time: steps, then Submit and App
   List.iter (Kyc_map.events ~previous ~current ~at) ~f:(fun e ->
     print_s [%message (e.id : Event_id.t) ~kind:(Event.Kind.name e.kind)]);
   (* The same observation again publishes nothing. *)
-  let again = Kyc_map.kyc_status ref_ ~previous:current c ~at:(Time_ns.add at Time_ns.Span.hour) in
-  print_s [%sexp (List.length (Kyc_map.events ~previous:current ~current:again ~at) : int)];
+  let again =
+    Kyc_map.kyc_status ref_ ~previous:current c ~at:(Time_ns.add at Time_ns.Span.hour)
+  in
+  print_s
+    [%sexp (List.length (Kyc_map.events ~previous:current ~current:again ~at) : int)];
   [%expect
     {|
     T0

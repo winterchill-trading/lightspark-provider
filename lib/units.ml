@@ -18,7 +18,6 @@ let currency ~code ~decimals =
 ;;
 
 let code c = Money.Currency.code c
-
 let pow10 n = Z.pow (Z.of_int 10) n
 
 let rescale minor ~from ~to_ =

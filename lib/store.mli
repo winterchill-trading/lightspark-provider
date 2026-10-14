@@ -3,8 +3,8 @@
     Grid keeps our customer id on the customer ([platformCustomerId]) and our beneficiary
     id on each external account ([platformAccountId]), and takes an [Idempotency-Key] on
     every create, so creating twice is already safe at Grid. What it cannot answer is
-    "which quote and transaction belong to our transfer id" and "which quote is our
-    swap"; those links live here, with the SCA challenge a quote is waiting on.
+    "which quote and transaction belong to our transfer id" and "which quote is our swap";
+    those links live here, with the SCA challenge a quote is waiting on.
 
     A service persists these in its own database by implementing {!t} (the transfer and
     swap records have stable binary forms); {!memory} serves tests, the CLI and the

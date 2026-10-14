@@ -78,7 +78,8 @@ let memory () =
       (fun (r : Challenge_record.t) -> return (set challenges r.challenge.id r))
   ; find_swap = (fun k -> return (Hashtbl.find swaps k))
   ; find_swap_by_quote =
-      (fun q -> return (Option.bind (Hashtbl.find swaps_by_quote q) ~f:(Hashtbl.find swaps)))
+      (fun q ->
+        return (Option.bind (Hashtbl.find swaps_by_quote q) ~f:(Hashtbl.find swaps)))
   ; set_swap =
       (fun (r : Swap_record.t) ->
         set swaps r.id r;

@@ -124,8 +124,7 @@ module Quote : sig
   type t =
     { id : string
     ; status : string
-    (** [PENDING], [PENDING_AUTHORIZATION], [PROCESSING], [COMPLETED], [FAILED],
-        [EXPIRED] *)
+    (** [PENDING], [PENDING_AUTHORIZATION], [PROCESSING], [COMPLETED], [FAILED], [EXPIRED] *)
     ; created_at : string
     ; expires_at : string
     ; sending_code : string
@@ -165,7 +164,8 @@ module Transaction : sig
     ; source_account_id : string option
     ; destination_type : string option
     ; destination_account_id : string option
-    ; tx_hash : string option (** an on-chain leg's hash, from either side's rail details *)
+    ; tx_hash : string option
+    (** an on-chain leg's hash, from either side's rail details *)
     ; network : string option
     ; created_at : string option
     ; updated_at : string option

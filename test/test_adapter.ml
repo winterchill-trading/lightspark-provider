@@ -20,8 +20,8 @@ let adapter ?verbose ?store ?webhook_public_key routes =
     ~config:
       { Adapter.Config.default with
         webhook_public_key
-      ; (* The poller's first round runs at subscription, before any customer is
-           known; a long interval keeps it from interleaving with the test's calls. *)
+      ; (* The poller's first round runs at subscription, before any customer is known; a
+           long interval keeps it from interleaving with the test's calls. *)
         poll_interval = Time_ns.Span.hour
       ; provisioning_timeout = Time_ns.Span.of_ms 50.
       }
@@ -61,7 +61,11 @@ let sepa_draft ?(id = "tr-1") amount =
     |> ok_exn
   in
   let party name =
-    { Iso20022.Party.name; iban = Iban.of_string iban |> ok_exn; bic = None; address = None }
+    { Iso20022.Party.name
+    ; iban = Iban.of_string iban |> ok_exn
+    ; bic = None
+    ; address = None
+    }
   in
   Transfer.draft
     ~id:(Transfer.Id.of_string id)
@@ -88,8 +92,8 @@ let payout_routes ~quote ~after_quote =
   ; ("POST", "/quotes"), [ quote ]
   ]
   @ after_quote
-  @ [ ("GET", "/transactions/Transaction:00000000-0000-0000-0000-000000000001")
-      , [ r "transaction-payout.json" ]
+  @ [ ( ("GET", "/transactions/Transaction:00000000-0000-0000-0000-000000000001")
+      , [ r "transaction-payout.json" ] )
     ]
 ;;
 
@@ -115,8 +119,8 @@ let%expect_test "a cross-border payout without SCA: quote, execute, settled" =
       (payout_routes
          ~quote:(r "quote-sepa.json")
          ~after_quote:
-           [ ("POST", "/quotes/Quote:00000000-0000-0000-0000-000000000001/execute")
-             , [ r "quote-sepa.json" ]
+           [ ( ("POST", "/quotes/Quote:00000000-0000-0000-0000-000000000001/execute")
+             , [ r "quote-sepa.json" ] )
            ])
   in
   let events = Adapter.events t in
@@ -128,7 +132,8 @@ let%expect_test "a cross-border payout without SCA: quote, execute, settled" =
   show_started again;
   let%map seen = return (drain events) in
   Queue.iter seen ~f:print_event;
-  [%expect {|
+  [%expect
+    {|
     GET /grid/2025-10-13/customers/external-accounts
     GET /grid/2025-10-13/config
     POST /grid/2025-10-13/customers/external-accounts
@@ -175,7 +180,9 @@ let%expect_test "a payout behind SCA: wrong code, then accepted, then executed" 
     | _ -> failwith "expected a challenge"
   in
   let confirm code =
-    let%map result = Adapter.confirm_sca t challenge.id ~code:(Sensitive.of_string code) in
+    let%map result =
+      Adapter.confirm_sca t challenge.id ~code:(Sensitive.of_string code)
+    in
     print_s [%sexp (result : Sca_challenge.Result.t Or_error.t)]
   in
   let%bind () = confirm "000000" in
@@ -184,9 +191,9 @@ let%expect_test "a payout behind SCA: wrong code, then accepted, then executed" 
   let%bind () = confirm "123456" in
   let%map info = Adapter.transfer t draft.id in
   print_s
-    [%sexp
-      (Or_error.map info ~f:(fun i -> i.status) : Transfer.Status.t Or_error.t)];
-  [%expect {|
+    [%sexp (Or_error.map info ~f:(fun i -> i.status) : Transfer.Status.t Or_error.t)];
+  [%expect
+    {|
     (challenge (factors (Otp Passkey)) (attempts_left 5)
      (purpose (Transfer tr-1)))
     (Ok (Wrong_code (attempts_left 4)))
@@ -204,11 +211,14 @@ let%expect_test "a payout above the balance fails the transfer, not the call" =
       ]
   in
   let events = Adapter.events t in
-  let%bind started = Adapter.initiate_transfer t ~from:usd_account (sepa_draft (eur "1000.00")) in
+  let%bind started =
+    Adapter.initiate_transfer t ~from:usd_account (sepa_draft (eur "1000.00"))
+  in
   show_started started;
   let%map seen = return (drain events) in
   Queue.iter seen ~f:print_event;
-  [%expect {|
+  [%expect
+    {|
     (done (status (Failed Insufficient_funds)) (fee "0.00 EUR"))
     ((e.id
       payee:ExternalAccount:00000000-0000-0000-0000-000000000001:UNSUPPORTED)
@@ -251,14 +261,15 @@ let%expect_test "a conversion between two accounts of a customer is a swap" =
         ~buy:(q.buy : Money.Amount.t)
         ~price:(Money.Rate.price_to_string (Money.Rate.price q.market) : string)];
   let%bind started = Adapter.execute_swap t q.id in
-  print_s
-    [%sexp (started : unit Sca_challenge.Or_challenge.t Or_error.t)];
+  print_s [%sexp (started : unit Sca_challenge.Or_challenge.t Or_error.t)];
   let%map seen = return (drain events) in
   Queue.iter seen ~f:(fun (e : Event.t) ->
     match e.kind with
-    | Swap_executed { buy; _ } -> print_s [%message "Swap_executed" (buy : Money.Amount.t)]
+    | Swap_executed { buy; _ } ->
+      print_s [%message "Swap_executed" (buy : Money.Amount.t)]
     | kind -> print_s [%message (Event.Kind.name kind : string)]);
-  [%expect {|
+  [%expect
+    {|
     ((sell "10.00 USD") (fee "0.00 USD") (buy "10.000000 USDC") (price 1))
     (Ok (Done ()))
     (Swap_executed (buy "10.000000 USDC"))
@@ -326,8 +337,10 @@ let%expect_test "signed webhooks become events, once" =
     print_s [%message "swapped body" ~_:(Result.is_ok result : bool)]
   in
   let%map info = Adapter.transfer t (Transfer.Id.of_string "tr-9") in
-  print_s [%sexp (Or_error.map info ~f:(fun i -> i.status) : Transfer.Status.t Or_error.t)];
-  [%expect {|
+  print_s
+    [%sexp (Or_error.map info ~f:(fun i -> i.status) : Transfer.Status.t Or_error.t)];
+  [%expect
+    {|
     (outgoing-failed (events 1))
     ((e.id tx:Transaction:00000000-0000-0000-0000-000000000009:FAILED)
      (Transfer (transfer tr-9)
@@ -375,7 +388,8 @@ let%expect_test "without a webhook key every delivery is refused" =
   let t = adapter [] in
   let%map result = Adapter.ingest_webhook t (delivery "test") in
   print_s [%sexp (result : Event.t list Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     (Error
      ("no Grid webhook public key configured"
       (variable LIGHTSPARK_GRID_WEBHOOK_PUBLIC_KEY)))
@@ -389,11 +403,14 @@ let%expect_test "cards, standing orders and sandbox outcomes" =
   let card = Card_core.Ids.Card_id.of_string "card-1" in
   let%bind a = Adapter.card t card in
   print_s [%sexp (a : Card_info.t Or_error.t)];
-  let%bind b = Adapter.simulate_transfer_outcome t (Transfer.Id.of_string "tr-1") Settled in
+  let%bind b =
+    Adapter.simulate_transfer_outcome t (Transfer.Id.of_string "tr-1") Settled
+  in
   print_s [%sexp (b : unit Or_error.t)];
   let%map c = Adapter.open_account t customer Money.Currency.eur in
   print_s [%sexp (Or_error.map c ~f:(fun _ -> ()) : unit Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     (Error "cards are not supported by the Grid adapter")
     (Error
      "the Grid sandbox picks a payout's outcome from the last three digits of the payee's account number (002 fails, 003 is slow, 005 is returned, 010-013 are rejected); there is no call to change it afterwards")

@@ -71,25 +71,40 @@ let show d =
      | Error e -> print_s [%sexp (e : Error.t)]
      | Ok (Internal { account_id }) -> print_s [%message "internal" account_id]
      | Ok (External { currency; account_info; payment_rail; platform_account_id }) ->
-       print_s
-         [%message
-           currency (payment_rail : string option) platform_account_id];
+       print_s [%message currency (payment_rail : string option) platform_account_id];
        print_endline (Yojson.Safe.to_string account_info))
 ;;
 
 let amount c s = Money.Amount.of_decimal_string c s |> ok_exn
 
 let%expect_test "beneficiaries as Grid external accounts" =
-  show (draft ~rail:Sepa_credit ~amount:(amount Money.Currency.eur "30.00") "DE89370400440532013000");
-  show (draft ~rail:Sepa_instant ~amount:(amount Money.Currency.eur "30.00") "FR1420041010050500013M02606");
+  show
+    (draft
+       ~rail:Sepa_credit
+       ~amount:(amount Money.Currency.eur "30.00")
+       "DE89370400440532013000");
+  show
+    (draft
+       ~rail:Sepa_instant
+       ~amount:(amount Money.Currency.eur "30.00")
+       "FR1420041010050500013M02606");
   show
     (draft
        ~rail:(Onchain Ethereum)
        ~amount:(amount Money.Currency.usdc "5.000000")
        "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed");
-  show (draft ~rail:Lightning ~amount:(amount Money.Currency.btc "0.00010000") "satoshi@example.com");
-  show (draft ~rail:Intraledger ~amount:(amount Money.Currency.usdc "1.000000") "Customer:c/InternalAccount:b");
-  [%expect {|
+  show
+    (draft
+       ~rail:Lightning
+       ~amount:(amount Money.Currency.btc "0.00010000")
+       "satoshi@example.com");
+  show
+    (draft
+       ~rail:Intraledger
+       ~amount:(amount Money.Currency.usdc "1.000000")
+       "Customer:c/InternalAccount:b");
+  [%expect
+    {|
     (EUR (payment_rail (SEPA)) ben-1)
     {"accountType":"EUR_ACCOUNT","iban":"DE89370400440532013000","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee","countryOfResidence":"DE"}}
     (EUR (payment_rail (SEPA_INSTANT)) ben-1)
@@ -105,14 +120,19 @@ let%expect_test "beneficiaries as Grid external accounts" =
 
 let%expect_test "what Grid cannot pay" =
   (* SEPA delivers euros only. *)
-  show (draft ~rail:Sepa_credit ~amount:(amount Money.Currency.usd "30.00") "DE89370400440532013000");
+  show
+    (draft
+       ~rail:Sepa_credit
+       ~amount:(amount Money.Currency.usd "30.00")
+       "DE89370400440532013000");
   (* No Bitcoin on-chain wallet account type. *)
   show
     (draft
        ~rail:(Onchain Bitcoin)
        ~amount:(amount Money.Currency.btc "0.00010000")
        "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq");
-  [%expect {|
+  [%expect
+    {|
     ("draft refused" ("SEPA transfers are in EUR" (amount "30.00 USD")))
     ("Grid has no wallet account on this network" (network Bitcoin))
     |}];

@@ -143,7 +143,8 @@ let observe_customer ?(at = now ()) t (c : Grid_api.Customer.t) =
 
 let track_customer t id =
   if not (Hashtbl.mem t.kyc_seen id)
-  then Hashtbl.set t.kyc_seen ~key:id ~data:(Customer.Kyc_status.initial (Refs.customer id))
+  then
+    Hashtbl.set t.kyc_seen ~key:id ~data:(Customer.Kyc_status.initial (Refs.customer id))
 ;;
 
 let fetch_kyc t ~customer_id =
@@ -195,7 +196,8 @@ let advance t (r : Transfer_record.t) (u : Transfer_update.t) =
 
 let info_of (r : Transfer_record.t) =
   { Transfer_info.transfer = r.id
-  ; provider_ref = Option.value r.provider_ref ~default:(Option.value r.quote_id ~default:"")
+  ; provider_ref =
+      Option.value r.provider_ref ~default:(Option.value r.quote_id ~default:"")
   ; status = r.status
   ; fee = r.fee
   ; details = r.details
@@ -246,7 +248,8 @@ let observe_swap t (s : Swap_record.t) (tx : Grid_api.Transaction.t) =
          ~at
          (Swap_failed
             { swap
-            ; reason = Option.value tx.failure_reason ~default:(String.lowercase tx.status)
+            ; reason =
+                Option.value tx.failure_reason ~default:(String.lowercase tx.status)
             }));
     return ()
   | _ -> return ()
@@ -278,8 +281,7 @@ let observe_tx t (tx : Grid_api.Transaction.t) =
 
 let scan_customer t ~customer_id =
   match%bind
-    lift
-      (Grid_api.transactions t.api ~customer_id ~max_pages:t.config.transactions_pages)
+    lift (Grid_api.transactions t.api ~customer_id ~max_pages:t.config.transactions_pages)
   with
   | Error _ as e -> return e
   | Ok txs ->
@@ -347,7 +349,8 @@ let poll_until ~timeout ~every f =
 let new_customer t ~customer_id (person : Kyc_core.Person.t) =
   let reveal = Kyc_core.Pii.reveal in
   let address = reveal person.residential_address in
-  { Grid_api.New_customer.platform_customer_id = Kyc_core.Customer_id.to_string customer_id
+  { Grid_api.New_customer.platform_customer_id =
+      Kyc_core.Customer_id.to_string customer_id
   ; full_name = reveal person.given_name ^ " " ^ reveal person.family_name
   ; birth_date = reveal person.date_of_birth
   ; nationality = Kyc_core.Country.to_string (reveal person.nationality)
@@ -477,10 +480,13 @@ let platform_currencies t =
   match t.currencies with
   | Some cs -> return (Ok cs)
   | None ->
-    let%map.Deferred.Or_error config = lift (Lc.Grid.platform_config (Grid_api.grid t.api)) in
+    let%map.Deferred.Or_error config =
+      lift (Lc.Grid.platform_config (Grid_api.grid t.api))
+    in
     let cs =
-      List.map config.supported_currencies ~f:(fun (c : Lc.Grid_types.Supported_currency.t) ->
-        c.currency_code)
+      List.map
+        config.supported_currencies
+        ~f:(fun (c : Lc.Grid_types.Supported_currency.t) -> c.currency_code)
     in
     t.currencies <- Some cs;
     cs
@@ -506,19 +512,17 @@ let find_grid_account t account =
 let account_opened t (a : Account.t) =
   publish
     t
-    (event ~id:("account:" ^ Account_ref.to_string a.id ^ ":opened") ~at:a.opened_at
+    (event
+       ~id:("account:" ^ Account_ref.to_string a.id ^ ":opened")
+       ~at:a.opened_at
        (Account_opened a))
 ;;
 
 (* The account Grid holds for a currency: the custodial one when a currency also has an
    embedded (self-custody) wallet. *)
 let pick_account ~code (accounts : Grid_api.Internal_account.t list) =
-  let matching =
-    List.filter accounts ~f:(fun a -> String.equal a.balance.code code)
-  in
-  match
-    List.find matching ~f:(fun a -> not (String.equal a.type_ "EMBEDDED_WALLET"))
-  with
+  let matching = List.filter accounts ~f:(fun a -> String.equal a.balance.code code) in
+  match List.find matching ~f:(fun a -> not (String.equal a.type_ "EMBEDDED_WALLET")) with
   | Some a -> Some a
   | None -> List.hd matching
 ;;
@@ -537,8 +541,8 @@ let open_account t customer currency =
              (code : string)
              (supported : string list)])
   | Ok _ ->
-    (* Grid opens one account per supported currency itself, a moment after the
-       customer; opening is waiting for it. *)
+    (* Grid opens one account per supported currency itself, a moment after the customer;
+       opening is waiting for it. *)
     (match%map
        poll_until
          ~timeout:t.config.provisioning_timeout
@@ -599,11 +603,7 @@ let movements_from_changes (changes : Grid_api.Balance_change.t list) ~default =
 ;;
 
 (* Money that moved: completed transactions, and outgoing ones already debited. *)
-let movements_from_transactions
-  (txs : Grid_api.Transaction.t list)
-  ~account_id
-  ~default
-  =
+let movements_from_transactions (txs : Grid_api.Transaction.t list) ~account_id ~default =
   List.filter_map txs ~f:(fun tx ->
     let at =
       Grid_time.parse_or ~default (Option.first_some tx.settled_at tx.updated_at)
@@ -638,7 +638,9 @@ let statement t account ~from ~until =
   | Ok (customer_id, a) ->
     let stop = Time_ns.min until (now ()) in
     let%bind.Deferred.Or_error movements =
-      match%bind Grid_api.balance_changes t.api ~account_id:a.id ~start:from ~stop:(now ()) with
+      match%bind
+        Grid_api.balance_changes t.api ~account_id:a.id ~start:from ~stop:(now ())
+      with
       | Ok changes -> return (movements_from_changes changes ~default:from)
       | Error e when not_implemented e ->
         let%bind.Deferred.Or_error txs =
@@ -658,8 +660,12 @@ let statement t account ~from ~until =
       (let open Or_error.Let_syntax in
        let%bind balance = Account_map.balance account a ~at:(now ()) in
        let currency = Money.Amount.currency balance.posted in
-       let within, after = List.partition_tf movements ~f:(fun m -> Time_ns.( < ) m.at stop) in
-       let%bind after_sum = Money.Amount.sum currency (List.map after ~f:(fun m -> m.amount)) in
+       let within, after =
+         List.partition_tf movements ~f:(fun m -> Time_ns.( < ) m.at stop)
+       in
+       let%bind after_sum =
+         Money.Amount.sum currency (List.map after ~f:(fun m -> m.amount))
+       in
        let%bind within_sum =
          Money.Amount.sum currency (List.map within ~f:(fun m -> m.amount))
        in
@@ -679,7 +685,14 @@ let statement t account ~from ~until =
              :: acc
            , balance ))
        in
-       { Statement.account; currency; from; until; opening; lines = List.rev lines; closing })
+       { Statement.account
+       ; currency
+       ; from
+       ; until
+       ; opening
+       ; lines = List.rev lines
+       ; closing
+       })
 ;;
 
 (* {2 SCA} *)
@@ -748,16 +761,16 @@ let quote_fee t ~from ~rail amount =
         | None -> List.hd rates
       in
       let%bind.Deferred.Or_error receive = return (Units.to_grid amount) in
-      let%bind.Deferred.Or_error first = lift (Grid_api.rates t.api ~source ~destination) in
+      let%bind.Deferred.Or_error first =
+        lift (Grid_api.rates t.api ~source ~destination)
+      in
       match pick first with
       | None ->
         return
           (Or_error.error_s
              [%message "Grid quotes no rate for the pair" source destination])
       | Some r ->
-        let sending =
-          Float.iround_up_exn (Float.of_int receive *. r.exchange_rate)
-        in
+        let sending = Float.iround_up_exn (Float.of_int receive *. r.exchange_rate) in
         (* Fees depend on the size, so ask again for this amount. *)
         let%bind.Deferred.Or_error sized =
           lift (Grid_api.rates t.api ~source ~destination ~sending_amount:sending)
@@ -766,9 +779,7 @@ let quote_fee t ~from ~rail amount =
         let fee_minor = Option.value r.fee_total ~default:0 in
         return
           (let open Or_error.Let_syntax in
-           let%bind fee =
-             Grid_api.Amount.to_money { a.balance with minor = fee_minor }
-           in
+           let%bind fee = Grid_api.Amount.to_money { a.balance with minor = fee_minor } in
            let%map total =
              Grid_api.Amount.to_money { a.balance with minor = sending + fee_minor }
            in
@@ -781,8 +792,8 @@ let insufficient e =
   | None -> false
 ;;
 
-(* A payment Grid refused for lack of funds: [Failed Insufficient_funds], published like
-   a status report so the application's transfer finishes. *)
+(* A payment Grid refused for lack of funds: [Failed Insufficient_funds], published like a
+   status report so the application's transfer finishes. *)
 let fail_transfer t (r : Transfer_record.t) (reason : Transfer.Failure_reason.t) =
   let r = { r with status = Failed reason; updated_at = now () } in
   let%map () = t.store.set_transfer r in
@@ -880,7 +891,11 @@ let payee_check_event t (beneficiary : Beneficiary.t) (e : Grid_api.External_acc
     publish
       t
       (event
-         ~id:(sprintf "payee:%s:%s" e.id (Option.value e.beneficiary_verification ~default:""))
+         ~id:
+           (sprintf
+              "payee:%s:%s"
+              e.id
+              (Option.value e.beneficiary_verification ~default:""))
          ~at:(now ())
          (Payee_check { beneficiary = beneficiary.id; result })))
 ;;
@@ -928,8 +943,8 @@ let start_transfer t ~customer_id ~account_id (draft : Transfer.t) =
 let initiate_transfer t ~from (draft : Transfer.t) =
   match%bind t.store.find_transfer draft.id with
   | Some r ->
-    (* A resend: report what the first call started. A transfer still waiting for SCA
-       gets its open challenge again. *)
+    (* A resend: report what the first call started. A transfer still waiting for SCA gets
+       its open challenge again. *)
     (match r.status, r.quote_id with
      | Awaiting_sca, Some quote_id ->
        (match%bind lift (Grid_api.quote t.api ~id:quote_id) with
@@ -1039,7 +1054,8 @@ let cancel_transfer t id =
 
 let quote_swap t ~from ~to_ ~sell =
   match Refs.account_parts from, Refs.account_parts to_ with
-  | (Error _ as e), _ | _, (Error _ as e) -> return (Or_error.map e ~f:(fun _ -> assert false))
+  | (Error _ as e), _ | _, (Error _ as e) ->
+    return (Or_error.map e ~f:(fun _ -> assert false))
   | Ok (a, _), Ok (b, _) when not (String.equal a b) ->
     return (Or_error.error_string "a swap moves between two accounts of one customer")
   | Ok (customer_id, source), Ok (_, destination) ->
@@ -1235,7 +1251,8 @@ let confirm_sca t id ~code =
                run_swap t s
              in
              Sca_challenge.Result.Accepted)
-        | _, (Standing_order _ | Card_details _) -> return (Ok Sca_challenge.Result.Accepted)))
+        | _, (Standing_order _ | Card_details _) ->
+          return (Ok Sca_challenge.Result.Accepted)))
 ;;
 
 (* {2 Cards and standing orders: not offered by this adapter} *)
@@ -1268,8 +1285,8 @@ let events_of_webhook t (e : Lc.Webhook.Grid.event) =
   t.captures <- captured :: t.captures;
   let finish () =
     t.captures <- List.filter t.captures ~f:(fun q -> not (phys_equal q captured));
-    (* Ids already published are not published again, so a redelivery yields no
-       events; the inbox would have dropped them anyway. *)
+    (* Ids already published are not published again, so a redelivery yields no events;
+       the inbox would have dropped them anyway. *)
     Queue.to_list captured
   in
   let data () = Or_error.try_with (fun () -> Yojson.Safe.from_string e.data) in
@@ -1289,8 +1306,8 @@ let events_of_webhook t (e : Lc.Webhook.Grid.event) =
        | Ok json ->
          let c = Grid_api.Customer.of_json json in
          track_customer t c.id;
-         (* Stamped with the delivery's time, so a step verified by a webhook carries
-            when Grid sent it. *)
+         (* Stamped with the delivery's time, so a step verified by a webhook carries when
+            Grid sent it. *)
          let at = Grid_time.parse_or ~default:(now ()) (Some e.timestamp) in
          ignore (observe_customer ~at t c : Customer.Kyc_status.t);
          return (Ok ()))
@@ -1298,8 +1315,8 @@ let events_of_webhook t (e : Lc.Webhook.Grid.event) =
       publish t (event ~id:("ping:" ^ e.id) ~at:(now ()) Ping);
       return (Ok ())
     | _ ->
-      (* Account, card, verification and agent notices: nothing to normalize; the
-         poller reads balances and KYC directly. *)
+      (* Account, card, verification and agent notices: nothing to normalize; the poller
+         reads balances and KYC directly. *)
       return (Ok ())
   in
   let events = finish () in
@@ -1346,10 +1363,12 @@ let simulate_deposit t ~account ~rail:(_ : Rail.t) amount =
               ~account_currency:a.balance.code
               ~amount:(amount : Money.Amount.t)]
     in
-    let%bind minor = Deferred.return (Units.to_minor ~decimals:a.balance.decimals amount) in
+    let%bind minor =
+      Deferred.return (Units.to_minor ~decimals:a.balance.decimals amount)
+    in
     t.deposits <- t.deposits + 1;
-    (* The description comes back on the incoming transaction, which is how the deposit
-       is found again: the fund call answers with the account, not the transaction. *)
+    (* The description comes back on the incoming transaction, which is how the deposit is
+       found again: the fund call answers with the account, not the transaction. *)
     let description =
       sprintf
         "sandbox deposit %d %s"
