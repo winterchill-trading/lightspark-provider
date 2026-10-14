@@ -579,11 +579,6 @@ let enrich_account t account =
   | Ok (customer_id, a) -> Account_map.account ~customer_id a
 ;;
 
-let us_bank_details t account =
-  let%map.Deferred.Or_error _, a = find_grid_account t account in
-  Account_map.us_bank_details a
-;;
-
 (* A statement line per balance change, or per transaction where Grid has no balance
    changes for the account (it answers 501 for some account types). *)
 type movement =
@@ -907,7 +902,7 @@ let payee_check_event t (beneficiary : Beneficiary.t) (e : Grid_api.External_acc
 (* Grid checks the name when it creates the external account for a payee (only some rails
    do), so a check is creating, or finding, that account. *)
 let verify_payee t ~customer (beneficiary : Beneficiary.t) =
-  match Payee.eur_account beneficiary ~payment_rail:None with
+  match Payee.bank_account beneficiary ~payment_rail:None with
   | None | Some (Internal _) -> return (Ok Beneficiary.Payee_check.Not_possible)
   | Some (External { currency; account_info; platform_account_id; _ }) ->
     let customer_id = Refs.customer_id customer in

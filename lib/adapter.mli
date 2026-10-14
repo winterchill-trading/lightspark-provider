@@ -2,13 +2,12 @@
     Grid API ([lightspark-client]).
 
     {b Scope.} Customers and their KYC state, the accounts Grid opens for each customer
-    (USD and the stablecoins the platform supports), payouts from them to bank accounts in
-    other currencies (cross-border, with Grid's FX quote), to wallets and to Lightning,
-    conversions between a customer's own accounts as swaps, statements from Grid's balance
-    changes, and webhooks. Cards and standing orders are not offered: those calls return
-    an error. US domestic bank payouts (ACH, RTP, wire) need a rail and a beneficiary
-    format payments-core does not have yet; {!us_bank_details} exposes the USD account's
-    routing and account number for deposits.
+    (USD and the stablecoins the platform supports; a USD account carries its routing and
+    account number), US domestic payouts over ACH, Same Day ACH, RTP and Fedwire,
+    cross-border payouts to bank accounts in other currencies (with Grid's FX quote), to
+    wallets and to Lightning, conversions between a customer's own accounts as swaps,
+    statements, payee name checks and webhooks. Cards and standing orders are not offered:
+    those calls return an error.
 
     {b Ids.} A customer is the Grid customer ([Customer:<uuid>]) and carries our id as
     [platformCustomerId], so [create_customer] looks it up before creating. An account is
@@ -38,7 +37,6 @@
     [Live] configs. *)
 
 open! Core
-open Async
 open Banking_provider
 
 module Config : sig
@@ -90,13 +88,6 @@ include Provider.S with type t := t
 include Sandbox.S with type t := t
 
 (** {2 Grid-specific} *)
-
-(** The US bank details (ABA routing and account number, the memo reference) to fund a USD
-    account by ACH or wire; [None] for other accounts. *)
-val us_bank_details
-  :  t
-  -> Account_ref.t
-  -> Account_map.Us_bank.t option Or_error.t Deferred.t
 
 (** Failures inside the poller, which has no caller to return them to. *)
 val background_errors : t -> Error.t list
