@@ -55,13 +55,9 @@ let walk () =
   step "USD account";
   let%bind usd = Adapter.open_account adapter customer.id Money.Currency.usd >>| ok_exn in
   Core.printf "   addresses %d\n" (List.length usd.addresses);
-  let%bind bank = Adapter.us_bank_details adapter usd.id >>| ok_exn in
   Core.printf
-    "   US bank details: %s\n"
-    (match bank with
-     | Some b ->
-       sprintf "routing and account number, rails %s" (String.concat ~sep:"," b.rails)
-     | None -> "none");
+    "   US routing and account number: %b\n"
+    (Option.is_some (Account.us_account usd));
   step "deposit 100.00 USD";
   let hundred = Money.Amount.of_decimal_string Money.Currency.usd "100.00" |> ok_exn in
   let%bind deposit =
@@ -197,6 +193,38 @@ let walk () =
   step "payout to an account the sandbox reports invalid";
   let%bind () =
     send ~from:usd.id (sepa_draft ~id:(run_id ^ "-bad") ~iban:"DE83370400440532013011")
+  in
+  let us_draft ~id ~rail amount =
+    Transfer.draft
+      ~id:(Transfer.Id.of_string id)
+      ~rail
+      ~account:(Ledger.Account_id.of_string "walk:app")
+      ~beneficiary:
+        (Beneficiary.create
+           ~id:(Beneficiary.Id.of_string ("ben-" ^ id))
+           ~owner:(Customer_ref.to_string customer.id)
+           ~name:"Erika Payee"
+           ~rail
+           ~now:(Time_ns.now ())
+           "123456780 000987654 checking"
+         |> ok_exn)
+      ~amount:(Money.Amount.of_decimal_string Money.Currency.usd amount |> ok_exn)
+      ~reference:"rent"
+      ~now:(Time_ns.now ())
+      ()
+    |> ok_exn
+  in
+  step "US payout 5.00 USD by ACH";
+  let%bind () =
+    send
+      ~from:usd.id
+      (us_draft ~id:(run_id ^ "-ach") ~rail:(Ach { sec = Ppd; same_day = false }) "5.00")
+  in
+  step "US payout 5.00 USD by RTP";
+  let%bind () = send ~from:usd.id (us_draft ~id:(run_id ^ "-rtp") ~rail:Rtp "5.00") in
+  step "US payout 5.00 USD by wire";
+  let%bind () =
+    send ~from:usd.id (us_draft ~id:(run_id ^ "-wire") ~rail:Fedwire "5.00")
   in
   step "conversion 10.00 USD to USDC";
   let%bind usdc =
