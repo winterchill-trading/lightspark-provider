@@ -129,9 +129,8 @@ let event ~id ~at kind = { Event.id = Event_id.of_string id; at; kind }
 
 (* {2 KYC} *)
 
-let observe_customer t (c : Grid_api.Customer.t) =
+let observe_customer ?(at = now ()) t (c : Grid_api.Customer.t) =
   let customer = Refs.customer c.id in
-  let at = now () in
   let previous =
     Hashtbl.find t.kyc_seen c.id
     |> Option.value ~default:(Customer.Kyc_status.initial customer)
@@ -1290,7 +1289,10 @@ let events_of_webhook t (e : Lc.Webhook.Grid.event) =
        | Ok json ->
          let c = Grid_api.Customer.of_json json in
          track_customer t c.id;
-         ignore (observe_customer t c : Customer.Kyc_status.t);
+         (* Stamped with the delivery's time, so a step verified by a webhook carries
+            when Grid sent it. *)
+         let at = Grid_time.parse_or ~default:(now ()) (Some e.timestamp) in
+         ignore (observe_customer ~at t c : Customer.Kyc_status.t);
          return (Ok ()))
     | None when String.equal e.type_ "TEST" ->
       publish t (event ~id:("ping:" ^ e.id) ~at:(now ()) Ping);
