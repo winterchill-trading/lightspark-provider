@@ -13,7 +13,8 @@ All notable changes to this project are documented here. The format follows
   waiting for Grid's, balances, statements (balance changes, else transactions), fee
   quotes from exchange rates, payouts to IBANs, wallets, Lightning and own accounts with
   the receiving amount locked, SCA challenges on quotes, conversions as swaps, polling
-  and signed webhook ingestion, sandbox deposits and test webhooks.
+  and signed webhook ingestion, sandbox deposits and test webhooks, and payee name
+  checks (`verify_payee`) from the external account Grid creates for the payee.
 - `Grid_api`: external accounts, quotes with payment rail, sender fields and SCA,
   authorization, execution, balance changes, contact verification, KYC links,
   transaction cancellation, exchange rates and test webhooks, with lenient views.

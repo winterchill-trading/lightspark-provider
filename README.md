@@ -93,6 +93,7 @@ and the gaps. [docs/api-notes.md](docs/api-notes.md) records what the sandbox sh
 | USDC payout to an Ethereum wallet | yes | |
 | Conversion USD to USDC as a swap, `Swap_executed` | yes | |
 | Statement (transaction fallback) | yes | balance-change path |
+| Payee name check on an IBAN (`Not_possible`: SEPA accounts are `UNSUPPORTED`) | yes | other answers |
 | SCA challenge, wrong code, authorization | | yes (US customers get none) |
 | Overdraft refusal | | yes |
 | Webhook signature, normalization, redelivery | | yes (signed with a throwaway key) |
@@ -165,6 +166,8 @@ live runs.
 - **Sandbox outcomes** are chosen when the customer or payee is created (name and account
   number suffixes); `simulate_kyc_decision` only confirms the decision Grid made and
   `simulate_transfer_outcome` returns an error.
+- **`simulate_payee_check`** returns an error: Grid fixes the name check by the account
+  number's suffix when the external account is created.
 - **`ping`** needs a webhook URL in the Grid dashboard; this adapter does not change
   platform settings.
 - **SCA** is exercised on fixtures only (US customers get no challenge); passkey

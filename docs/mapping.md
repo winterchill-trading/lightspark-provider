@@ -43,6 +43,7 @@ object. The store is needed only for "which quote is this transfer".
 | `transfer`              | `GET /transactions/{id}`                                                  | |
 | `cancel_transfer`       | `POST /transactions/{id}/cancel`                                          | a quote never executed lapses on its own |
 | `confirm_sca`           | `POST /quotes/{id}/authorize`, then `POST /quotes/{id}/execute`           | wrong code: `Wrong_code`, five attempts counted locally |
+| `verify_payee`          | `GET`/`POST /customers/external-accounts` (the `EUR_ACCOUNT` for the IBAN) | Grid checks the name when it creates the account: `MATCHED` Match, `PARTIAL_MATCH` Close_match (no suggested name), `NOT_MATCHED` No_match, `UNSUPPORTED`/`CHECKED_BY_RECEIVING_FI` Not_possible, `PENDING` Unavailable, a 400 Account_not_found; other destinations Not_possible |
 | `quote_swap`            | `POST /quotes` between two internal accounts of one customer (sending amount locked) | the price comes from the amounts, not Grid's float rate |
 | `execute_swap`          | `POST /quotes/{id}/execute`, `GET /transactions/{id}`                     | result as `Swap_executed` / `Swap_failed` |
 | `issue_virtual_card`, `card`, `cards`, `set_card_status`, `set_card_limits`, `card_details_token` | none | error: cards are out of scope for this adapter |
@@ -56,6 +57,7 @@ object. The store is needed only for "which quote is this transfer".
 | `simulate_kyc_decision`     | `GET /customers/{id}`                                             | Grid decides at creation by the name's last three characters; succeeds only when the decision matches |
 | `simulate_card_auth`        | none                                                              | error |
 | `simulate_transfer_outcome` | none                                                              | error: outcomes are chosen by the payee account's last three digits |
+| `simulate_payee_check`      | none                                                              | error: the answer is fixed by the account number's last three digits (102-107) |
 | `ping`                      | `POST /webhooks/test`                                             | publishes `Ping` once Grid reports a delivery; fails while the platform has no webhook URL |
 
 Every money-moving write (`POST /customers`, external accounts, quotes, execution) first
