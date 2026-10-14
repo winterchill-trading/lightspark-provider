@@ -26,7 +26,7 @@
 
     {b Events.} Grid posts webhooks to the URL configured in its dashboard, signed with
     the platform's P-256 key; a service passes each delivery to {!ingest_webhook}. Without
-    a public URL the adapter polls instead: while anything is subscribed to {!events} it
+    a public URL the adapter polls instead: while anything is subscribed to {!val-events} it
     reads, every [poll_interval], the KYC state and the latest transactions of every
     customer it has seen. Both paths derive the same event ids from Grid's data
     ({!Kyc_map}, {!Tx_map}), so an inbox applies each change once whichever path saw it

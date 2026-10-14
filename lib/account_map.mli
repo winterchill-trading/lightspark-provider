@@ -38,7 +38,7 @@ val balance
   -> Account.Balance.t Or_error.t
 
 (** US bank details of a USD account (ABA routing and account number), which
-    {!Account.Address.t} cannot carry yet. *)
+    {!Banking_provider.Account.Address.t} cannot carry yet. *)
 module Us_bank : sig
   type t =
     { routing_number : string
