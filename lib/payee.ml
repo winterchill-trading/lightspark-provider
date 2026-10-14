@@ -28,6 +28,29 @@ let individual ~name ~country =
     ]
 ;;
 
+let eur_account (b : Beneficiary.t) ~payment_rail =
+  match b.destination with
+  | Bank_account { iban; bic } ->
+    let iban_s = Iban.to_string iban in
+    Some
+      (External
+         { currency = "EUR"
+         ; account_info =
+             `Assoc
+               (List.filter_opt
+                  [ Some ("accountType", `String "EUR_ACCOUNT")
+                  ; Some ("iban", `String iban_s)
+                  ; Option.map bic ~f:(fun b -> "swiftCode", `String (Bic.to_string b))
+                  ; Some
+                      ( "beneficiary"
+                      , individual ~name:b.name ~country:(String.prefix iban_s 2) )
+                  ])
+         ; payment_rail
+         ; platform_account_id = Beneficiary.Id.to_string b.id
+         })
+  | _ -> None
+;;
+
 let of_transfer (tr : Transfer.t) ~payee_country =
   let currency = Units.code (Money.Amount.currency tr.amount) in
   match tr.counterparty with
@@ -35,35 +58,21 @@ let of_transfer (tr : Transfer.t) ~payee_country =
   | Beneficiary b ->
     let platform_account_id = Beneficiary.Id.to_string b.id in
     (match b.destination, tr.rail with
-     | Bank_account { iban; bic }, (Sepa_credit | Sepa_instant) ->
+     | Bank_account _, (Sepa_credit | Sepa_instant) ->
        if not (String.equal currency "EUR")
        then
          Or_error.error_s
            [%message "a SEPA payout delivers EUR" ~amount_currency:(currency : string)]
        else (
-         let iban_s = Iban.to_string iban in
-         let info =
-           `Assoc
-             (List.filter_opt
-                [ Some ("accountType", `String "EUR_ACCOUNT")
-                ; Some ("iban", `String iban_s)
-                ; Option.map bic ~f:(fun b -> "swiftCode", `String (Bic.to_string b))
-                ; Some
-                    ( "beneficiary"
-                    , individual ~name:b.name ~country:(String.prefix iban_s 2) )
-                ])
+         let payment_rail =
+           Some
+             (match tr.rail with
+              | Sepa_instant -> "SEPA_INSTANT"
+              | _ -> "SEPA")
          in
-         Ok
-           (External
-              { currency
-              ; account_info = info
-              ; payment_rail =
-                  Some
-                    (match tr.rail with
-                     | Sepa_instant -> "SEPA_INSTANT"
-                     | _ -> "SEPA")
-              ; platform_account_id
-              }))
+         Or_error.of_option
+           (eur_account b ~payment_rail)
+           ~error:(Error.of_string "not a bank account"))
      | Crypto { address; memo = _ }, Onchain network ->
        (match wallet_type network with
         | None ->

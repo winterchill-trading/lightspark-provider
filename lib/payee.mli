@@ -35,5 +35,9 @@ type t =
     and the destination does not say (wallets); an IBAN gives its own country. *)
 val of_transfer : Transfer.t -> payee_country:string -> t Or_error.t
 
+(** The [EUR_ACCOUNT] external account for a beneficiary's IBAN; [None] for other
+    destinations. *)
+val eur_account : Beneficiary.t -> payment_rail:string option -> t option
+
 (** Grid's [<NETWORK>_WALLET] account type for a network, if it has one. *)
 val wallet_type : Network.t -> string option
