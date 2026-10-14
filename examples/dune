@@ -1,0 +1,14 @@
+; Examples are built with the rest of the project (and so in CI) but not installed.
+
+(executables
+ (names quick_start)
+ (libraries
+  core
+  async
+  core_unix.command_unix
+  banking-provider
+  kyc-core
+  money
+  lightspark-provider)
+ (preprocess
+  (pps ppx_jane)))
