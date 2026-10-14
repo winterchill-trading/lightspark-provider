@@ -7,10 +7,10 @@ module Transfer_record = struct
   type t =
     { id : Transfer.Id.Stable.V1.t
     ; account : Account_ref.Stable.V1.t
-    ; rail : Rail.Stable.V1.t
+    ; rail : Rail.Stable.V2.t
     ; amount : Money.Amount.Stable.V1.t
     ; fee : Money.Amount.Stable.V1.t
-    ; details : Transfer.Details.t
+    ; details : Transfer.Details.Stable.V2.t
     ; quote_id : string option
     ; provider_ref : string option
     ; status : Transfer.Status.t

@@ -20,10 +20,10 @@ module Transfer_record : sig
   type t =
     { id : Transfer.Id.Stable.V1.t
     ; account : Account_ref.Stable.V1.t
-    ; rail : Rail.Stable.V1.t
+    ; rail : Rail.Stable.V2.t
     ; amount : Money.Amount.Stable.V1.t (** what the payee receives *)
     ; fee : Money.Amount.Stable.V1.t (** in the account's currency *)
-    ; details : Transfer.Details.t
+    ; details : Transfer.Details.Stable.V2.t
     ; quote_id : string option
     ; provider_ref : string option (** Grid's transaction id, once executed *)
     ; status : Transfer.Status.t
