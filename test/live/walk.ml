@@ -97,12 +97,10 @@ let walk () =
     | Error e -> Core.printf "   error %s\n" (Error.to_string_hum e)
   in
   step "cross-border payout EUR 30.00 to an IBAN";
-  let id = run_id ^ "-sepa" in
-  let draft =
-    let iban = "DE89370400440532013000" in
+  let sepa_draft ~id ~iban =
     let beneficiary =
       Beneficiary.create
-        ~id:(Beneficiary.Id.of_string ("ben-" ^ run_id))
+        ~id:(Beneficiary.Id.of_string ("ben-" ^ id))
         ~owner:(Customer_ref.to_string customer.id)
         ~name:"Erika Payee"
         ~rail:Sepa_credit
@@ -110,7 +108,9 @@ let walk () =
         iban
       |> ok_exn
     in
-    let party name = { Iso20022.Party.name; iban = Iban.of_string iban |> ok_exn; bic = None; address = None } in
+    let party name =
+      { Iso20022.Party.name; iban = Iban.of_string iban |> ok_exn; bic = None; address = None }
+    in
     Transfer.draft
       ~id:(Transfer.Id.of_string id)
       ~rail:Sepa_credit
@@ -129,8 +129,8 @@ let walk () =
       ()
     |> ok_exn
   in
-  let%bind () =
-    match%bind Adapter.initiate_transfer adapter ~from:usd.id draft with
+  let send ~from (draft : Transfer.t) =
+    match%bind Adapter.initiate_transfer adapter ~from draft with
     | Error e ->
       Core.printf "   error %s\n" (String.prefix (Error.to_string_hum e) 400);
       return ()
@@ -143,7 +143,7 @@ let walk () =
         (Sexp.to_string [%sexp (info.status : Transfer.Status.t)])
         (Money.Amount.to_string info.fee);
       let%bind (_ : unit option) =
-        await_event events ~what:"settlement" ~timeout:(Time_ns.Span.of_min 2.)
+        await_event events ~what:"a final status" ~timeout:(Time_ns.Span.of_min 2.)
           (fun (e : Event.t) ->
              match e.kind with
              | Transfer { transfer; update; _ } when Transfer.Id.equal transfer draft.id ->
@@ -155,18 +155,22 @@ let walk () =
                 | _ -> None)
              | _ -> None)
       in
-      let%bind again = Adapter.initiate_transfer adapter ~from:usd.id draft >>| ok_exn in
+      let%bind again = Adapter.initiate_transfer adapter ~from draft >>| ok_exn in
       Core.printf
         "   resend: %s\n"
         (match again with
          | Done i -> Sexp.to_string [%sexp (i.status : Transfer.Status.t)]
          | Challenge _ -> "challenge");
-      let%map b = Adapter.balance adapter usd.id >>| ok_exn in
+      let%map b = Adapter.balance adapter from >>| ok_exn in
       Core.printf
         "   balance available %s posted %s\n"
         (Money.Amount.to_string b.available)
         (Money.Amount.to_string b.posted)
   in
+  let%bind () = send ~from:usd.id (sepa_draft ~id:(run_id ^ "-sepa") ~iban:"DE89370400440532013000") in
+  (* Grid's sandbox fails a payout to an account number ending in 011 as ACCOUNT_INVALID. *)
+  step "payout to an account the sandbox reports invalid";
+  let%bind () = send ~from:usd.id (sepa_draft ~id:(run_id ^ "-bad") ~iban:"DE83370400440532013011") in
   step "conversion 10.00 USD to USDC";
   let%bind usdc = Adapter.open_account adapter customer.id Money.Currency.usdc >>| ok_exn in
   let ten = Money.Amount.of_decimal_string Money.Currency.usd "10.00" |> ok_exn in
@@ -206,6 +210,51 @@ let walk () =
     "   USD balance available %s posted %s\n"
     (Money.Amount.to_string b.available)
     (Money.Amount.to_string b.posted);
+  step "on-chain payout 1.000000 USDC on Ethereum";
+  let%bind () =
+    let address = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed" in
+    let id = run_id ^ "-chain" in
+    let person name account =
+      { Travel_rule.Person.name
+      ; account
+      ; identification = Some (Customer_number (run_id ^ "-walk"))
+      ; lei = None
+      }
+    in
+    let draft =
+      Transfer.draft
+        ~id:(Transfer.Id.of_string id)
+        ~rail:(Onchain Ethereum)
+        ~account:(Ledger.Account_id.of_string "walk:app")
+        ~beneficiary:
+          (Beneficiary.create
+             ~id:(Beneficiary.Id.of_string ("ben-" ^ id))
+             ~owner:(Customer_ref.to_string customer.id)
+             ~name:"Erika Payee"
+             ~rail:(Onchain Ethereum)
+             ~now:(Time_ns.now ())
+             address
+           |> ok_exn)
+        ~amount:(Money.Amount.of_decimal_string Money.Currency.usdc "1.000000" |> ok_exn)
+        ~details:
+          (Onchain
+             { travel_rule =
+                 Some
+                   { originator = person "Ada Sandbox" (Account_ref.to_string usdc.id)
+                   ; beneficiary = person "Erika Payee" address
+                   ; counterparty_wallet = Self_hosted { ownership_verified = true }
+                   }
+             ; tx_hash = None
+             ; block_hash = None
+             ; confirmations = 0
+             ; finalized = false
+             })
+        ~now:(Time_ns.now ())
+        ()
+      |> ok_exn
+    in
+    send ~from:usdc.id draft
+  in
   step "statement";
   let%bind () =
     let until = Time_ns.now () in
