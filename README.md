@@ -76,7 +76,8 @@ through lightspark-client's redaction. Money-moving writes are refused unless
 
 [docs/mapping.md](docs/mapping.md) lists every operation with its Grid endpoints, every
 webhook and transaction status with its event, the currency, rail, KYC and SCA mappings,
-and the gaps. [docs/api-notes.md](docs/api-notes.md) records what the sandbox showed.
+and the gaps. [docs/api-notes.md](docs/api-notes.md) records what the sandbox showed;
+[AGENTS.md](AGENTS.md) is the guide for coding agents.
 
 ## Coverage
 
