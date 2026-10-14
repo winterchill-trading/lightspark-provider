@@ -1,0 +1,23 @@
+(library
+ (name lightspark_provider_test)
+ (libraries
+  lightspark-provider
+  lightspark-client
+  banking-provider
+  core
+  async
+  async_kernel
+  yojson
+  money
+  ledger
+  kyc-core
+  payments-core
+  card-core
+  expect_test_helpers_core)
+ (inline_tests
+  (deps
+   (source_tree fixtures))
+  (flags
+   (:standard -source-tree-root .)))
+ (preprocess
+  (pps ppx_jane)))
