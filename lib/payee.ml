@@ -17,9 +17,11 @@ let wallet_type (n : Network.t) =
   | Polygon -> Some "POLYGON_WALLET"
   | Solana -> Some "SOLANA_WALLET"
   | Tron -> Some "TRON_WALLET"
+  | Base -> Some "BASE_WALLET"
+  | Arbitrum -> Some "ARBITRUM_WALLET"
+  | Plasma -> Some "PLASMA_WALLET"
+  | Spark -> Some "SPARK_WALLET"
   | Bitcoin | Bitcoin_testnet -> None
-  (* payments-core gained these networks; paying them is not mapped here yet. *)
-  | Base | Arbitrum | Plasma | Spark -> None
 ;;
 
 let individual ~name ~country =
@@ -30,7 +32,7 @@ let individual ~name ~country =
     ]
 ;;
 
-let eur_account (b : Beneficiary.t) ~payment_rail =
+let bank_account (b : Beneficiary.t) ~payment_rail =
   match b.destination with
   | Bank_account { iban; bic } ->
     let iban_s = Iban.to_string iban in
@@ -50,6 +52,38 @@ let eur_account (b : Beneficiary.t) ~payment_rail =
          ; payment_rail
          ; platform_account_id = Beneficiary.Id.to_string b.id
          })
+  | Us_account a ->
+    Some
+      (External
+         { currency = "USD"
+         ; account_info =
+             `Assoc
+               [ "accountType", `String "USD_ACCOUNT"
+               ; "accountNumber", `String a.account_number
+               ; "routingNumber", `String (Aba.to_string a.routing)
+               ; ( "bankAccountType"
+                 , `String
+                     (match a.account_type with
+                      | Checking -> "CHECKING"
+                      | Savings -> "SAVINGS") )
+               ; ( "beneficiary"
+                 , `Assoc
+                     [ "beneficiaryType", `String "INDIVIDUAL"
+                     ; "fullName", `String b.name
+                     ] )
+               ]
+         ; payment_rail
+         ; platform_account_id = Beneficiary.Id.to_string b.id
+         })
+  | _ -> None
+;;
+
+let us_rail (r : Rail.t) =
+  match r with
+  | Ach { same_day = false; _ } -> Some "ACH"
+  | Ach { same_day = true; _ } -> Some "ACH_SAME_DAY"
+  | Rtp -> Some "RTP"
+  | Fedwire -> Some "WIRE"
   | _ -> None
 ;;
 
@@ -73,8 +107,17 @@ let of_transfer (tr : Transfer.t) ~payee_country =
               | _ -> "SEPA")
          in
          Or_error.of_option
-           (eur_account b ~payment_rail)
+           (bank_account b ~payment_rail)
            ~error:(Error.of_string "not a bank account"))
+     | Us_account _, ((Ach _ | Rtp | Fedwire) as rail) ->
+       if not (String.equal currency "USD")
+       then
+         Or_error.error_s
+           [%message "US rails deliver USD" ~amount_currency:(currency : string)]
+       else
+         Or_error.of_option
+           (bank_account b ~payment_rail:(us_rail rail))
+           ~error:(Error.of_string "not a US account")
      | Crypto { address; memo = _ }, Onchain network ->
        (match wallet_type network with
         | None ->

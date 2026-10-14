@@ -138,3 +138,31 @@ let%expect_test "what Grid cannot pay" =
     |}];
   return ()
 ;;
+
+let%expect_test "US accounts on the US rails" =
+  let usd = amount Money.Currency.usd "20.00" in
+  let account = "123456780 000987654 savings" in
+  show (draft ~rail:(Ach { sec = Ppd; same_day = false }) ~amount:usd account);
+  show (draft ~rail:(Ach { sec = Ppd; same_day = true }) ~amount:usd account);
+  show (draft ~rail:Rtp ~amount:usd account);
+  show (draft ~rail:Fedwire ~amount:usd account);
+  show
+    (draft
+       ~rail:(Onchain Base)
+       ~amount:(amount Money.Currency.usdc "5.000000")
+       "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed");
+  [%expect
+    {|
+    (USD (payment_rail (ACH)) ben-1)
+    {"accountType":"USD_ACCOUNT","accountNumber":"000987654","routingNumber":"123456780","bankAccountType":"SAVINGS","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee"}}
+    (USD (payment_rail (ACH_SAME_DAY)) ben-1)
+    {"accountType":"USD_ACCOUNT","accountNumber":"000987654","routingNumber":"123456780","bankAccountType":"SAVINGS","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee"}}
+    (USD (payment_rail (RTP)) ben-1)
+    {"accountType":"USD_ACCOUNT","accountNumber":"000987654","routingNumber":"123456780","bankAccountType":"SAVINGS","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee"}}
+    (USD (payment_rail (WIRE)) ben-1)
+    {"accountType":"USD_ACCOUNT","accountNumber":"000987654","routingNumber":"123456780","bankAccountType":"SAVINGS","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee"}}
+    (USDC (payment_rail ()) ben-1)
+    {"accountType":"BASE_WALLET","address":"0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed","beneficiary":{"beneficiaryType":"INDIVIDUAL","fullName":"Erika Payee","countryOfResidence":"US"}}
+    |}];
+  return ()
+;;
