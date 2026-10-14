@@ -18,6 +18,8 @@ let wallet_type (n : Network.t) =
   | Solana -> Some "SOLANA_WALLET"
   | Tron -> Some "TRON_WALLET"
   | Bitcoin | Bitcoin_testnet -> None
+  (* payments-core gained these networks; paying them is not mapped here yet. *)
+  | Base | Arbitrum | Plasma | Spark -> None
 ;;
 
 let individual ~name ~country =
